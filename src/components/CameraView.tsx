@@ -1,6 +1,6 @@
-import { Camera, useCameraDevice } from 'react-native-vision-camera'
-import { useEffect, useRef, useState } from 'react'
-import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
 
 interface Props {
@@ -29,12 +29,12 @@ export default function CameraView({ onCapture, isLoading }: Props) {
         const photo = await camera.current.takePhoto();
         onCapture(photo.path);
       } catch (error) {
-        console.error("❌ Error al capturar foto:", error);
+        console.error('❌ Error al capturar foto:', error);
       }
     }
   };
 
-  if (!device || !hasPermission) return null;
+  if (!device || !hasPermission) {return null;}
 
   return (
     <View style={styles.container}>
