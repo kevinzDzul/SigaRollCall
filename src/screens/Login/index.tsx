@@ -18,14 +18,14 @@ export default function LoginScreen() {
     return text.trim() === '' ? true : false;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const userErrorMessage = isEmpty(user) ? 'Campo requerido' : undefined;
     const passwordErrorMessage = isEmpty(pass) ? 'Campo requerido' : undefined;
     setUseError(userErrorMessage);
     setPassError(passwordErrorMessage);
 
     if (user && pass) {
-      login({ user, password: pass });
+      await login({ user, password: pass });
     }
   };
 

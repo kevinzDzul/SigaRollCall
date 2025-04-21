@@ -1,4 +1,4 @@
-import api from "./axiosInstance";
+import api from './axiosInstance';
 
 export interface LoginRequest {
   usuario: string;
@@ -14,7 +14,7 @@ export interface LoginResponse {
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse, any, LoginRequest>(
-    "/login.php",
+    '/login.php',
     data
   );
   return response.data;

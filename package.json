@@ -17,6 +17,7 @@
     "@tensorflow-models/facemesh": "^0.0.5",
     "@tensorflow/tfjs": "^4.22.0",
     "add": "^2.0.6",
+    "axios": "^1.8.4",
     "lottie-react-native": "^7.2.2",
     "react": "19.0.0",
     "react-native": "0.79.1",

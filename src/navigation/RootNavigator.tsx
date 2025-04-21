@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { View, ActivityIndicator, StatusBar, StyleSheet } from 'react-native';
 import CaptureScreen from '@siga/screens/Capture';
 import HomeLayout from '@siga/screens/Main/HomeNavigation';
 import LoginScreen from '@siga/screens/Login';
@@ -15,11 +15,7 @@ const RootNavigator = () => {
 
     if (isLoading) {
         return (
-            <View style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}>
+            <View style={styles.viewLoading}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -42,6 +38,14 @@ const RootNavigator = () => {
             </NavigationContainer>
         </>
     );
-}
+};
+
+const styles = StyleSheet.create({
+    viewLoading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
 
 export default RootNavigator;

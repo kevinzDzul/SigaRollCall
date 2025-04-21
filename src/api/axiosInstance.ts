@@ -2,13 +2,13 @@ import axios, {
   AxiosInstance,
   AxiosResponse,
   InternalAxiosRequestConfig,
-} from "axios";
+} from 'axios';
 
 const ENABLE_LOGS = true;
 
 const logRequest = <D>(config: InternalAxiosRequestConfig<D>) => {
   if (ENABLE_LOGS) {
-    console.log("📤 Request:", {
+    console.log('📤 Request:', {
       method: config.method,
       url: config.url,
       headers: config.headers,
@@ -20,7 +20,7 @@ const logRequest = <D>(config: InternalAxiosRequestConfig<D>) => {
 
 const logResponse = <T>(response: AxiosResponse<T>) => {
   if (ENABLE_LOGS) {
-    console.log("📥 Response:", {
+    console.log('📥 Response:', {
       url: response.config.url,
       status: response.status,
       data: response.data,
@@ -32,13 +32,13 @@ const logResponse = <T>(response: AxiosResponse<T>) => {
 const logError = (error: any) => {
   if (ENABLE_LOGS) {
     if (error.response) {
-      console.log("❌ Error Response:", {
+      console.log('❌ Error Response:', {
         url: error.config?.url,
         status: error.response.status,
         data: error.response.data,
       });
     } else {
-      console.log("❌ Request Error:", error.message);
+      console.log('❌ Request Error:', error.message);
     }
   }
   return Promise.reject(error);
@@ -46,7 +46,7 @@ const logError = (error: any) => {
 
 // 🎛️ Instancia tipada
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: "https://api.tudominio.com",
+  baseURL: 'https://api.tudominio.com',
   timeout: 10000,
 });
 
