@@ -77,7 +77,7 @@ export const InputText = ({ label, error, loading, onClear, value, ...props }: P
                             <ActivityIndicator size="small" color={colors.outline} />
                         ) : (
                             <TouchableOpacity onPress={onClear}>
-                                <Icon name="xmark" iconStyle="solid" size={20} color={colors.outline} />;
+                                <Icon name="xmark" iconStyle="solid" size={20} color={colors.outline} />
                             </TouchableOpacity>
                         )}
                     </View>
