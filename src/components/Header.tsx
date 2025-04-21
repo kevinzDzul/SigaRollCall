@@ -2,6 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { useThemeColor } from '@siga/hooks/useThemeColor';
+import Icon from '@react-native-vector-icons/fontawesome6';
+import { useTheme } from '@siga/context/themeProvider';
+
 
 type HeaderMode = 'back' | 'drawer' | 'none'
 
@@ -12,6 +15,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title, mode = 'none' }) => {
     const navigation = useNavigation();
+    const { colors } = useTheme();
     const bg = useThemeColor({}, 'primary');
     const textColor = useThemeColor({}, 'onPrimary');
 
@@ -34,10 +38,10 @@ const Header: React.FC<HeaderProps> = ({ title, mode = 'none' }) => {
 
     const renderIcon = () => {
         if (mode === 'back') {
-            return <View></View>; //<Ionicons name="arrow-back" size={24} color={textColor} />;
+            return <Icon name="chevron-left" iconStyle="solid" size={30} color={colors.onPrimary} />;
         }
         if (mode === 'drawer') {
-            return <View></View>;//<Ionicons name="menu" size={24} color={textColor} />;
+            return <Icon name="bars" iconStyle="solid" size={30} color={colors.onPrimary} />;
         }
         return null;
     };

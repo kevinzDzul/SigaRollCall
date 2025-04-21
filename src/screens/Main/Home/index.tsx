@@ -1,33 +1,79 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
+
+import Container from '@siga/components/Container';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@siga/screens/Capture';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../Capture';
 import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
-import LottiePlayer from '@siga/components/LottiePlayer';
-import Container from '@siga/components/Container';
-import { CustomText } from '@siga/components/CustomText';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
-export default function HomeScreen() {
+export default function FacialRecognitionScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   return (
-    <Container style={styles.container}>
+    <Container >
       <Header mode="drawer" />
       <View style={styles.body}>
-        <CustomText style={styles.title}>🤖 Reconocimiento Facial</CustomText>
-        <LottiePlayer style={{ width: 200, height: 200, marginBottom: 20 }} />
-        <Button title="🔍 Validar Rostro" onPress={() => navigation.navigate('CaptureScreen', { mode: 'validate' })} />
+        <View style={styles.iconContainer}>
+          <Text style={styles.emoji}>🤖</Text>
+        </View>
+
+        <Text style={styles.title}>Reconocimiento Facial</Text>
+        <Text style={styles.subtitle}>Coloca tu rostro frente a la cámara</Text>
+
+        <View style={styles.tipsContainer}>
+          <Text style={styles.tip}>• Asegúrate de estar en un lugar bien iluminado 💡</Text>
+          <Text style={styles.tip}>• Mantén tu rostro centrado y sin objetos que lo cubran 👓</Text>
+        </View>
+
+        <Button
+          title="🔍 Validar Rostro"
+          onPress={() => navigation.navigate('CaptureScreen', { mode: 'validate' })}
+        />
       </View>
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  body: { flex: 1, alignItems: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  body: {
+    flex: 1,
+    backgroundColor: '#f1f2f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  iconContainer: {
+    backgroundColor: '#dbeafe',
+    padding: 16,
+    borderRadius: 50,
+    marginBottom: 16,
+  },
+  emoji: {
+    fontSize: 36,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#475569',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  tipsContainer: {
+    marginBottom: 30,
+    alignSelf: 'stretch',
+  },
+  tip: {
+    fontSize: 14,
+    color: '#334155',
+    marginBottom: 6,
+  },
 });
