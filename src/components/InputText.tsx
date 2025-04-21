@@ -1,3 +1,4 @@
+import Icon from '@react-native-vector-icons/fontawesome6';
 import { useTheme } from '@siga/context/themeProvider';
 import React, { useState } from 'react';
 import {
@@ -8,14 +9,18 @@ import {
     TextInputProps,
     NativeSyntheticEvent,
     TextInputFocusEventData,
+    ActivityIndicator,
+    TouchableOpacity,
 } from 'react-native';
 
 type Props = TextInputProps & {
     label?: string;
     error?: string;
+    loading?: boolean;
+    onClear?: () => void;
 };
 
-export const InputText = ({ label, error, ...props }: Props) => {
+export const InputText = ({ label, error, loading, onClear, value, ...props }: Props) => {
     const { colors } = useTheme();
     const [focused, setFocused] = useState(false);
 
@@ -35,6 +40,8 @@ export const InputText = ({ label, error, ...props }: Props) => {
             ? colors.primary
             : colors.outline;
 
+    const showRightIcon = !!value;
+
     return (
         <View style={{ marginBottom: 16 }}>
             {label && (
@@ -42,20 +49,40 @@ export const InputText = ({ label, error, ...props }: Props) => {
                     {label}
                 </Text>
             )}
-            <TextInput
-                {...props}
-                placeholderTextColor={colors.onSurfaceVariant}
+            <View
                 style={[
-                    styles.input,
+                    styles.inputContainer,
                     {
                         backgroundColor: colors.surfaceContainerLow,
-                        color: colors.onSurface,
                         borderColor: borderColor,
                     },
                 ]}
-                onFocus={handleFocused}
-                onBlur={handleBlur}
-            />
+            >
+                <TextInput
+                    {...props}
+                    value={value}
+                    placeholderTextColor={colors.onSurfaceVariant}
+                    style={[
+                        styles.input,
+                        {
+                            color: colors.onSurface,
+                        },
+                    ]}
+                    onFocus={handleFocused}
+                    onBlur={handleBlur}
+                />
+                {showRightIcon && (
+                    <View style={styles.iconContainer}>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={colors.outline} />
+                        ) : (
+                            <TouchableOpacity onPress={onClear}>
+                                <Icon name="xmark" iconStyle="solid" size={20} color={colors.outline} />;
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
+            </View>
             {!!error && (
                 <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
             )}
@@ -69,12 +96,20 @@ const styles = StyleSheet.create({
         marginBottom: 4,
         fontWeight: '500',
     },
-    input: {
+    inputContainer: {
         height: 48,
         borderRadius: 8,
         borderWidth: 1.5,
         paddingHorizontal: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    input: {
+        flex: 1,
         fontSize: 16,
+    },
+    iconContainer: {
+        marginLeft: 8,
     },
     errorText: {
         fontSize: 12,

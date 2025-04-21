@@ -1,10 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Employee, SearchUsersParams } from '@siga/api/searchUsers';
 import Container from '@siga/components/Container';
 import { CustomText } from '@siga/components/CustomText';
 import Header from '@siga/components/Header';
 import { InputText } from '@siga/components/InputText';
 import { useTheme } from '@siga/context/themeProvider';
+import { useDebounce } from '@siga/hooks/useDebounce';
+import { searchUsers } from '@siga/mock/services/searchUsers';
 import { RootStackParamList } from '@siga/screens/Capture';
 import React, { useEffect, useState } from 'react';
 import {
@@ -14,48 +17,59 @@ import {
     TouchableOpacity,
 } from 'react-native';
 
-const dummyData = Array.from({ length: 20 }, (_, i) => ({
-    id: `${i + 1}`,
-    name: `Nombre ${i + 1}`,
-}));
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function CheckListScreen() {
     const { colors } = useTheme();
-    const navigation = useNavigation<NavigationProp>()
+    const navigation = useNavigation<NavigationProp>();
     const [query, setQuery] = useState('');
-    const [filteredData, setFilteredData] = useState(dummyData);
+    const debouncedQuery = useDebounce(query, 500);
+
+    const [filteredData, setFilteredData] = useState<Employee[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            if (query.length > 0) {
-                const filtered = dummyData.filter((item) =>
-                    item.name.toLowerCase().includes(query.toLowerCase())
-                );
-                setFilteredData(filtered);
-            } else {
-                setFilteredData(dummyData);
+        if (!debouncedQuery.trim()) {
+            setFilteredData([]);
+            return;
+        }
+
+        let active = true;
+        setLoading(true);
+
+        const params: SearchUsersParams = { query: debouncedQuery };
+        searchUsers(params).then((res) => {
+            if (active && res?.success) {
+                setFilteredData(res?.users);
             }
-        }, 500);
+        }).catch((error) => {
+            console.warn('Error buscando usuarios:', error);
+            if (active) { setFilteredData([]); }
+        }).finally(() => active && setLoading(false));
 
-        return () => clearTimeout(delayDebounce);
-    }, [query]);
+        return () => {
+            active = false;
+        };
+    }, [debouncedQuery]);
 
-    const renderItem = ({ item }: { item: typeof dummyData[number] }) => (
+
+    const renderItem = (item: Employee) => (
         <TouchableOpacity
             onPress={() => navigation.navigate('CaptureScreen', { mode: 'register' })}
             style={[styles.item, { backgroundColor: colors.surfaceContainerHighest }]}>
-            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{item.name}</CustomText>
+            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{item.firstName}</CustomText>
         </TouchableOpacity>
     );
 
     return (
         <Container style={styles.container}>
-            <Header mode='drawer' />
+            <Header mode="drawer" />
             <View style={[styles.body]}>
                 <InputText
                     placeholder="Buscar..."
                     value={query}
+                    loading={loading}
+                    onClear={() => setQuery('')}
                     onChangeText={setQuery}
                     placeholderTextColor={colors.surfaceVariant}
                     style={[styles.searchInput, { borderColor: colors.surfaceVariant }]}
@@ -63,7 +77,7 @@ export default function CheckListScreen() {
                 <FlatList
                     data={filteredData}
                     keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
+                    renderItem={({ item }) => renderItem(item)}
                     ListEmptyComponent={<CustomText style={[styles.noResults]}>Sin resultados</CustomText>}
                 />
             </View>
