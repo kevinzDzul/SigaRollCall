@@ -1,6 +1,6 @@
 import { LoginRequest, LoginResponse } from '@siga/api/authService';
 
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+export const loginService = async (data: LoginRequest): Promise<LoginResponse> => {
   if (data.usuario === 'admin' && data.password === '1234') {
     return {
       success: true,

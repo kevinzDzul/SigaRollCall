@@ -2,7 +2,7 @@ import {
   Employee,
   SearchUsersParams,
   SearchUsersResponse,
-} from '@siga/api/searchUsers';
+} from '@siga/api/searchUsersService';
 
 interface RawEmployee {
   id_empleado: string;
@@ -38,7 +38,7 @@ function mapRawToEmployee(raw: RawEmployee): Employee {
     middleName: raw.a_materno,
   };
 }
-export async function searchUsers(
+export async function searchUsersService(
   params: SearchUsersParams
 ): Promise<SearchUsersResponse> {
   console.debug('[Mock] searchUsers called with:', params);

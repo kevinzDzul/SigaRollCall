@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '@siga/constants/Roles';
-import { login } from '@siga/mock/services/authServiceMock';
+import { loginService } from '@siga/mock/services/authServiceMock';
 //import { login } from '@siga/api/authService';
 
 type LoginType = {
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginAuth = async ({ user, password }: LoginType) => {
     setIsLoading(true);
     try {
-      const { profile, success, error } = await login({ usuario: user, password });
+      const { profile, success, error } = await loginService({ usuario: user, password });
       if (error || !success || !profile) { throw new Error(error); }
 
       await AsyncStorage.setItem('isLoggedIn', `${success}`);

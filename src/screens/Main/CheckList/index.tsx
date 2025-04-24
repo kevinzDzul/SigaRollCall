@@ -1,13 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Employee, SearchUsersParams } from '@siga/api/searchUsers';
+import { Employee, SearchUsersParams } from '@siga/api/searchUsersService';
 import Container from '@siga/components/Container';
 import { CustomText } from '@siga/components/CustomText';
 import Header from '@siga/components/Header';
 import { InputText } from '@siga/components/InputText';
 import { useTheme } from '@siga/context/themeProvider';
 import { useDebounce } from '@siga/hooks/useDebounce';
-import { searchUsers } from '@siga/mock/services/searchUsers';
+import { searchUsersService } from '@siga/mock/services/searchUsersMock';
 import { RootStackParamList } from '@siga/screens/Capture';
 import React, { useEffect, useState } from 'react';
 import {
@@ -38,7 +38,7 @@ export default function CheckListScreen() {
         setLoading(true);
 
         const params: SearchUsersParams = { query: debouncedQuery };
-        searchUsers(params).then((res) => {
+        searchUsersService(params).then((res) => {
             if (active && res?.success) {
                 setFilteredData(res?.users);
             }

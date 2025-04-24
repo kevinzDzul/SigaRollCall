@@ -5,14 +5,14 @@ import React, {
     useCallback,
     useRef,
     useEffect,
-} from 'react'
+} from 'react';
 import {
     Text,
     StyleSheet,
     Animated,
     Dimensions,
     Platform,
-} from 'react-native'
+} from 'react-native';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning'
 
@@ -21,20 +21,20 @@ interface Toast {
     type?: ToastType
 }
 
-const ToastContext = createContext<(message: string, type?: ToastType) => void>(() => { })
+const ToastContext = createContext<(message: string, type?: ToastType) => void>(() => { });
 
 export const toastRef = {
     show: (message: string, type?: ToastType) => { },
-}
+};
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
-    const [toast, setToast] = useState<Toast | null>(null)
-    const [visible, setVisible] = useState(false)
-    const opacity = useRef(new Animated.Value(0)).current
+    const [toast, setToast] = useState<Toast | null>(null);
+    const [visible, setVisible] = useState(false);
+    const opacity = useRef(new Animated.Value(0)).current;
 
     const showToast = useCallback((message: string, type: ToastType = 'info') => {
-        setToast({ message, type })
-        setVisible(true)
+        setToast({ message, type });
+        setVisible(true);
         Animated.timing(opacity, {
             toValue: 1,
             duration: 300,
@@ -46,30 +46,30 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                     duration: 300,
                     useNativeDriver: true,
                 }).start(() => {
-                    setVisible(false)
-                    setToast(null)
-                })
-            }, 2500)
-        })
-    }, [opacity])
+                    setVisible(false);
+                    setToast(null);
+                });
+            }, 2500);
+        });
+    }, [opacity]);
 
     // Expone la función global
     useEffect(() => {
-        toastRef.show = showToast
-    }, [showToast])
+        toastRef.show = showToast;
+    }, [showToast]);
 
     const getBackgroundColor = (type?: ToastType) => {
         switch (type) {
             case 'success':
-                return '#4CAF50'
+                return '#4CAF50';
             case 'error':
-                return '#F44336'
+                return '#F44336';
             case 'warning':
-                return '#FFC107'
+                return '#FFC107';
             default:
-                return '#333'
+                return '#333';
         }
-    }
+    };
 
     return (
         <ToastContext.Provider value={showToast}>
@@ -94,12 +94,12 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                 </Animated.View>
             )}
         </ToastContext.Provider>
-    )
-}
+    );
+};
 
-export const useToastTop = () => useContext(ToastContext)
+export const useToastTop = () => useContext(ToastContext);
 
-const { width } = Dimensions.get('window')
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     toast: {
@@ -123,4 +123,4 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
     },
-})
+});

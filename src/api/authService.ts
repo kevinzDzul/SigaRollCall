@@ -12,7 +12,7 @@ export interface LoginResponse {
   error: string | undefined;
 }
 
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+export const loginService = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse, any, LoginRequest>(
     '/login.php',
     data

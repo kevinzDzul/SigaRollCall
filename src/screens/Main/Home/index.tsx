@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 
 import Container from '@siga/components/Container';
@@ -7,11 +7,24 @@ import { RootStackParamList } from '@siga/screens/Capture';
 import { useNavigation } from '@react-navigation/native';
 import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
+import { useCaptureStore } from '@siga/store/capture';
+import { useToastTop } from '@siga/context/toastProvider';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function FacialRecognitionScreen() {
   const navigation = useNavigation<NavigationProp>();
+
+  const showToast = useToastTop();
+  const status = useCaptureStore((state) => state.status);
+  const clearResult = useCaptureStore((state) => state.clearResult);
+
+  useEffect(() => {
+    if (status) {
+      showToast('Registro completo');
+      clearResult();
+    }
+  }, [status, showToast, clearResult]);
 
   return (
     <Container >

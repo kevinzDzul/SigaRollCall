@@ -36,7 +36,7 @@ function mapRawToEmployee(raw: RawEmployee): Employee {
   };
 }
 
-export const searchUsers = async (
+export const searchUsersService = async (
   params: SearchUsersParams
 ): Promise<SearchUsersResponse> => {
   const response = await api.get<SearchUsersResponse, any, SearchUsersParams>(
