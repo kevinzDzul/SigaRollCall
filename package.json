@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/image-editor": "^4.3.0",
     "@react-native-vector-icons/common": "^11.0.0",
     "@react-native-vector-icons/fontawesome6": "^6.7.1",
     "@react-native-vector-icons/ionicons": "^7.4.0",
@@ -17,13 +18,12 @@
     "@react-navigation/drawer": "^7.1.1",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
-    "@tensorflow-models/facemesh": "^0.0.5",
-    "@tensorflow/tfjs": "^4.22.0",
     "add": "^2.0.6",
     "axios": "^1.8.4",
     "lottie-react-native": "^7.2.2",
     "react": "19.0.0",
     "react-native": "0.79.1",
+    "react-native-fast-tflite": "^1.6.1",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-reanimated": "^3.17.4",
     "react-native-safe-area-context": "^5.4.0",
@@ -31,6 +31,9 @@
     "react-native-screens": "^4.10.0",
     "react-native-svg": "^15.11.2",
     "react-native-vision-camera": "^4.6.4",
+    "react-native-vision-camera-face-detector": "^1.8.2",
+    "react-native-worklets-core": "^1.5.0",
+    "vision-camera-resize-plugin": "^3.2.0",
     "yarn": "^1.22.22"
   },
   "devDependencies": {

@@ -1,20 +1,33 @@
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
+import {
+  Face,
+  useFaceDetector,
+  FaceDetectionOptions,
+  Bounds,
+} from 'react-native-vision-camera-face-detector';
+import { Worklets } from 'react-native-worklets-core';
 
 interface Props {
-  onCapture: (path: string) => void;
-  isLoading?: boolean;
+  onCapture: (path: string, bounds?: Bounds) => void;
 }
 
 const { width, height } = Dimensions.get('window');
 
-export default function CameraView({ onCapture, isLoading }: Props) {
+export default function CameraView({ onCapture }: Props) {
   const { colors } = useTheme();
-  const [hasPermission, setHasPermission] = useState(false);
   const camera = useRef<Camera>(null);
   const device = useCameraDevice('front');
+
+  const [hasFace, setHasFace] = useState(false);
+  const [bounds, setBounds] = useState<Bounds | undefined>(undefined);
+
+  const [hasPermission, setHasPermission] = useState(false);
+
+  const faceDetectionOptions = useRef<FaceDetectionOptions>({}).current;
+  const { detectFaces } = useFaceDetector(faceDetectionOptions);
 
   useEffect(() => {
     (async () => {
@@ -24,17 +37,32 @@ export default function CameraView({ onCapture, isLoading }: Props) {
   }, []);
 
   const takePhoto = async () => {
-    if (camera.current && !isLoading) {
+    if (camera.current && hasFace) {
       try {
-        const photo = await camera.current.takePhoto();
-        onCapture(photo.path);
+        /*** tomamos un screen shot en lugar de foto por que la foto queda oscura */
+        const photo = await camera.current.takeSnapshot({ quality: 90 });
+        onCapture(photo.path, bounds);
       } catch (error) {
         console.error('❌ Error al capturar foto:', error);
       }
     }
   };
 
-  if (!device || !hasPermission) {return null;}
+  const handleDetectedFaces = Worklets.createRunOnJS((
+    faces: Face[]
+  ) => {
+    setHasFace((faces?.length ?? 0) > 0);
+    setBounds(faces[0]?.bounds);
+  });
+
+  const frameProcessor = useFrameProcessor(async (frame) => {
+    'worklet';
+    const faces = detectFaces(frame);
+    handleDetectedFaces(faces);
+
+  }, [handleDetectedFaces]);
+
+  if (!device || !hasPermission) { return null; }
 
   return (
     <View style={styles.container}>
@@ -43,20 +71,19 @@ export default function CameraView({ onCapture, isLoading }: Props) {
         style={styles.camera}
         device={device}
         isActive={true}
-        photo={true}
+        frameProcessor={frameProcessor}
       />
       <View style={styles.circleOverlay} />
       <View style={styles.captureContainer}>
-        {isLoading ? (
+        {!hasFace ? (
           <ActivityIndicator color={colors.primary} size="large" />
         ) : (
           <TouchableOpacity
             onPress={takePhoto}
-            disabled={isLoading}
-            style={styles.captureButtonOuter}
-          >
+            style={styles.captureButtonOuter}>
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
+
         )}
       </View>
     </View>
@@ -69,7 +96,7 @@ const styles = StyleSheet.create({
   circleOverlay: {
     position: 'absolute',
     borderStyle: 'dashed',
-    top: height / 2 - 300,
+    top: height / 2 - 200,
     left: width / 2 - 140,
     width: 280,
     height: 400,
