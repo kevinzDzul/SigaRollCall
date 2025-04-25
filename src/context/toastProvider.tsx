@@ -1,3 +1,4 @@
+import { CustomText } from '@siga/components/CustomText';
 import React, {
     createContext,
     useContext,
@@ -7,7 +8,6 @@ import React, {
     useEffect,
 } from 'react';
 import {
-    Text,
     StyleSheet,
     Animated,
     Dimensions,
@@ -84,13 +84,13 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                         },
                     ]}
                 >
-                    <Text style={styles.toastText}>
+                    <CustomText style={styles.toastText}>
                         {toast.type === 'success' && '✅ '}
                         {toast.type === 'error' && '❌ '}
                         {toast.type === 'warning' && '⚠️ '}
                         {toast.type === 'info' && 'ℹ️ '}
                         {toast.message}
-                    </Text>
+                    </CustomText>
                 </Animated.View>
             )}
         </ToastContext.Provider>

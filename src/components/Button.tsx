@@ -1,6 +1,7 @@
 import { useTheme } from '@siga/context/themeProvider';
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { CustomText } from './CustomText';
 
 interface ButtonProps {
     type?: 'primary' | 'outline',
@@ -31,7 +32,7 @@ const Button: React.FC<ButtonProps> = ({ type, title, isLoading, onPress, style,
             {isLoading ? (
                 <ActivityIndicator color={colors.onPrimary} />
             ) : (
-                <Text style={[styles.text, textStyle, { color: textColor }]}>{title}</Text>
+                <CustomText style={[styles.text, textStyle, { color: textColor }]}>{title}</CustomText>
             )}
         </TouchableOpacity>
     );

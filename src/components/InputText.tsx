@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
     TextInput,
     View,
-    Text,
     StyleSheet,
     TextInputProps,
     NativeSyntheticEvent,
@@ -12,6 +11,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
 } from 'react-native';
+import { CustomText } from './CustomText';
 
 type Props = TextInputProps & {
     label?: string;
@@ -45,9 +45,9 @@ export const InputText = ({ label, error, loading, onClear, value, ...props }: P
     return (
         <View style={{ marginBottom: 16 }}>
             {label && (
-                <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>
+                <CustomText style={[styles.label, { color: colors.onSurfaceVariant }]}>
                     {label}
-                </Text>
+                </CustomText>
             )}
             <View
                 style={[
@@ -84,7 +84,7 @@ export const InputText = ({ label, error, loading, onClear, value, ...props }: P
                 )}
             </View>
             {!!error && (
-                <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+                <CustomText style={[styles.errorText, { color: colors.error }]}>{error}</CustomText>
             )}
         </View>
     );

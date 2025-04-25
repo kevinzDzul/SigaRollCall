@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { useThemeColor } from '@siga/hooks/useThemeColor';
 import Icon from '@react-native-vector-icons/fontawesome6';
 import { useTheme } from '@siga/context/themeProvider';
+import { CustomText } from './CustomText';
 
 
 type HeaderMode = 'back' | 'drawer' | 'none'
@@ -55,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ title, mode = 'none' }) => {
             ) : (
                 <View style={styles.button} />
             )}
-            <Text style={[styles.title, { color: textColor }]}>{title}</Text>
+            <CustomText style={[styles.title, { color: textColor }]}>{title}</CustomText>
             <View style={styles.button} />
         </View>
     );

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import Container from '@siga/components/Container';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import Header from '@siga/components/Header';
 import { useCaptureStore } from '@siga/store/capture';
 import { useToastTop } from '@siga/context/toastProvider';
 import { useLocation } from '@siga/hooks/useLocation';
+import { CustomText } from '@siga/components/CustomText';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -37,15 +38,15 @@ export default function FacialRecognitionScreen() {
       <Header mode="drawer" />
       <View style={styles.body}>
         <View style={styles.iconContainer}>
-          <Text style={styles.emoji}>🤖</Text>
+          <CustomText style={styles.emoji}>🤖</CustomText>
         </View>
 
-        <Text style={styles.title}>Reconocimiento Facial</Text>
-        <Text style={styles.subtitle}>Coloca tu rostro frente a la cámara</Text>
+        <CustomText style={styles.title}>Reconocimiento Facial</CustomText>
+        <CustomText style={styles.subtitle}>Coloca tu rostro frente a la cámara</CustomText>
 
         <View style={styles.tipsContainer}>
-          <Text style={styles.tip}>• Asegúrate de estar en un lugar bien iluminado 💡</Text>
-          <Text style={styles.tip}>• Mantén tu rostro centrado y sin objetos que lo cubran 👓</Text>
+          <CustomText style={styles.tip}>• Asegúrate de estar en un lugar bien iluminado 💡</CustomText>
+          <CustomText style={styles.tip}>• Mantén tu rostro centrado y sin objetos que lo cubran 👓</CustomText>
         </View>
 
         <Button
