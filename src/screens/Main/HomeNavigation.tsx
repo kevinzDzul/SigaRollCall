@@ -3,27 +3,45 @@ import HomeScreen from './Home';
 import CheckListScreen from './CheckList';
 import SettingsScreen from './Setting';
 import { useTheme } from '@siga/context/themeProvider';
+import { usePermissions } from '@siga/hooks/usePermissions';
+import { UserRole } from '@siga/constants/Roles';
 
 const Drawer = createDrawerNavigator();
+
 export default function HomeLayout() {
   const { colors } = useTheme();
+  const { canAccess } = usePermissions();
+
+  // Definimos las pantallas
+  const screens = [
+    { name: '🏘️ Inicio', component: HomeScreen, permission: [UserRole.USER, UserRole.ADMIN, UserRole.MANAGER] },
+    { name: '✏️ Pase Lista', component: CheckListScreen, permission: [UserRole.ADMIN, UserRole.MANAGER] },
+    { name: '⚙️ Ajustes', component: SettingsScreen, permission: [UserRole.USER, UserRole.ADMIN, UserRole.MANAGER] },
+  ];
+
+  // Filtramos según permisos
+  const filteredScreens = screens.filter(screen => canAccess(screen?.permission ?? []));
 
   return (
     <Drawer.Navigator
       screenOptions={{
         drawerStyle: {
-          backgroundColor: colors.primary, // fondo del drawer
+          backgroundColor: colors.primary,
         },
         drawerLabelStyle: {
-          color: colors.onPrimary, // color del texto
+          color: colors.onPrimary,
         },
-        headerShown: false, // si usas tu propio Header
-        drawerActiveTintColor: colors.surface, // item seleccionado
-        drawerInactiveTintColor: colors.onSurface, // items no seleccionados
+        headerShown: false,
+        drawerActiveTintColor: colors.surface,
+        drawerInactiveTintColor: colors.onSurface,
       }}>
-      <Drawer.Screen name="🏘️ Inicio" component={HomeScreen} />
-      <Drawer.Screen name="✏️ Pase Lista" component={CheckListScreen} />
-      <Drawer.Screen name="⚙️ Ajustes" component={SettingsScreen} />
+      {filteredScreens.map(screen => (
+        <Drawer.Screen
+          key={screen.name}
+          name={screen.name}
+          component={screen.component}
+        />
+      ))}
     </Drawer.Navigator>
   );
 }
