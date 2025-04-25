@@ -9,9 +9,13 @@ import { useTheme } from '@siga/context/themeProvider';
 import { useToastTop } from '@siga/context/toastProvider';
 import { registerFaceService } from '@siga/mock/services/registerFaceMock';
 import { validateFaceService } from '@siga/mock/services/validateFaceMock';
+import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 
 export type RootStackParamList = {
-    CaptureScreen: { id?: string | undefined, mode: 'register' | 'validate' }
+    CaptureScreen: {
+        id?: string | undefined,
+        mode: 'register' | 'validate'
+    }
 }
 
 type CaptureScreenRouteProp = RouteProp<RootStackParamList, 'CaptureScreen'>
@@ -23,6 +27,8 @@ export default function CaptureScreen() {
     const { goBack } = useNavigation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const setResult = useCaptureStore((state) => state.setResult);
+    const clearResult = useCaptureStore((state) => state.clearResult);
+    const { getLocation } = useLocation();
 
     const { modelState, model } = useEfficientDetModel();
 
@@ -32,14 +38,18 @@ export default function CaptureScreen() {
         return new Uint8Array(imageData);
     };
 
-    const validateUserFace = async (imagePath: string) => {
+    const validateUserFace = async (imagePath: string, coords: CoordsProps) => {
         const raw = await extractFile(imagePath);
         const detector = await model?.run([raw]);
-        const { error, success } = await validateFaceService({ vector: detector });
+        const { error, success } = await validateFaceService({
+            latitude: coords?.latitude,
+            longitude: coords?.longitude,
+            vector: detector,
+        });
         setResult(success, error);
     };
 
-    const registerUserFace = async (id: string, imagePath: string) => {
+    const registerUserFace = async (imagePath: string, id: string) => {
         const raw = await extractFile(imagePath);
         const detector = await model?.run([raw]);
         const { error, success } = await registerFaceService({ id: id, vector: detector });
@@ -48,29 +58,45 @@ export default function CaptureScreen() {
 
     const handleCapture = async (imagePath: string) => {
         const mode = route?.params?.mode;
-        setIsLoading(true);
-        try {
-            if (mode === 'register') {
-                const id = route?.params?.id;
-                if (!id) {
-                    showToast('Se requiere identificador');
-                    return;
-                }
-                await registerUserFace(id, imagePath);
-            }
-            if (mode === 'validate') {
-                await validateUserFace(imagePath);
-            }
-            setIsLoading(false);
-        } catch (e) {
-            console.error(e);
-            showToast('Ocurrio un error');
-            setIsLoading(false);
-        } finally {
-            goBack();
+        const id = route?.params?.id;
+
+        const location = await getLocation();
+
+        if (!location) {
+            showToast('Se requieren permisos de localización');
+            return;
         }
 
+        if (!mode) {
+            showToast('Modo no especificado');
+            return;
+        }
+
+        if (mode === 'register' && !id) {
+            showToast('Se requiere identificador');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            if (mode === 'register' && id) {
+                await registerUserFace(imagePath, id);
+            } else if (mode === 'validate') {
+                await validateUserFace(imagePath, location);
+            } else {
+                showToast(`Modo desconocido: ${mode} o undefined`);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Ocurrió un error durante el proceso');
+            clearResult();
+        } finally {
+            setIsLoading(false);
+            goBack();/// TODO -  hay un warning, resolverlo, deberia hacer un navigate.
+        }
     };
+
 
     return (
         <View style={styles.container}>
@@ -78,7 +104,13 @@ export default function CaptureScreen() {
                 <Header mode={isLoading ? undefined : 'back'} />
             </View>
             {isLoading ? <ActivityIndicator color={colors.primary} size="large" /> : null}
-            {modelState === 'loaded' && isLoading === false ? <CameraView onCapture={handleCapture} /> : null}
+            {modelState === 'loaded' && isLoading === false ?
+                <CameraView
+                    onCapture={handleCapture}
+                    showCircleFace
+                />
+                : null
+            }
         </View>
     );
 }
@@ -86,7 +118,6 @@ export default function CaptureScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
     },
     containerHeader: {
         position: 'absolute',

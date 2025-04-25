@@ -53,5 +53,10 @@
 	<!-- optionally, if you want to record audio: -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your Microphone.</string>
+	<!-- geolocation -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Use location to make validation user</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Use location to make validation user</string>
 </dict>
 </plist>

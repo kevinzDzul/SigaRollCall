@@ -12,11 +12,12 @@ import { Worklets } from 'react-native-worklets-core';
 
 interface Props {
   onCapture: (path: string, bounds?: Bounds) => void;
+  showCircleFace?: boolean;
 }
 
 const { width, height } = Dimensions.get('window');
 
-export default function CameraView({ onCapture }: Props) {
+export default function CameraView({ onCapture, showCircleFace }: Props) {
   const { colors } = useTheme();
   const camera = useRef<Camera>(null);
   const device = useCameraDevice('front');
@@ -73,7 +74,7 @@ export default function CameraView({ onCapture }: Props) {
         isActive={true}
         frameProcessor={frameProcessor}
       />
-      <View style={styles.circleOverlay} />
+      {showCircleFace ? <View style={styles.circleOverlay} /> : null}
       <View style={styles.captureContainer}>
         {!hasFace ? (
           <ActivityIndicator color={colors.primary} size="large" />
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   circleOverlay: {
     position: 'absolute',
     borderStyle: 'dashed',
-    top: height / 2 - 200,
+    top: height / 2 - 240,
     left: width / 2 - 140,
     width: 280,
     height: 400,

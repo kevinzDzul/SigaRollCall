@@ -4,7 +4,7 @@ import CheckListScreen from './CheckList';
 import SettingsScreen from './Setting';
 import { useTheme } from '@siga/context/themeProvider';
 
-const Drawer = createDrawerNavigator()
+const Drawer = createDrawerNavigator();
 export default function HomeLayout() {
   const { colors } = useTheme();
 

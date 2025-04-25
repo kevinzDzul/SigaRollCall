@@ -9,6 +9,7 @@ import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
 import { useCaptureStore } from '@siga/store/capture';
 import { useToastTop } from '@siga/context/toastProvider';
+import { useLocation } from '@siga/hooks/useLocation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -18,6 +19,11 @@ export default function FacialRecognitionScreen() {
   const showToast = useToastTop();
   const status = useCaptureStore((state) => state.status);
   const clearResult = useCaptureStore((state) => state.clearResult);
+  const { checkAndRequestPermission } = useLocation();
+
+  useEffect(() => {
+    checkAndRequestPermission();
+  }, [checkAndRequestPermission]);
 
   useEffect(() => {
     if (status) {
