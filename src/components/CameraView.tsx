@@ -9,6 +9,7 @@ import {
   Bounds,
 } from 'react-native-vision-camera-face-detector';
 import { Worklets } from 'react-native-worklets-core';
+import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
 
 interface Props {
   onCapture: (path: string, bounds?: Bounds) => void;
@@ -29,6 +30,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({}).current;
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
+  useUnmountBrightness(1);
 
   useEffect(() => {
     (async () => {
