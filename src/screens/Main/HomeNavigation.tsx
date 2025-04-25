@@ -21,9 +21,9 @@ export default function HomeLayout() {
         drawerActiveTintColor: colors.surface, // item seleccionado
         drawerInactiveTintColor: colors.onSurface, // items no seleccionados
       }}>
-      <Drawer.Screen name="Inicio" component={HomeScreen} />
-      <Drawer.Screen name="Lista" component={CheckListScreen} />
-      <Drawer.Screen name="Configuración" component={SettingsScreen} />
+      <Drawer.Screen name="🏘️ Inicio" component={HomeScreen} />
+      <Drawer.Screen name="✏️ Pase Lista" component={CheckListScreen} />
+      <Drawer.Screen name="⚙️ Ajustes" component={SettingsScreen} />
     </Drawer.Navigator>
   );
 }
