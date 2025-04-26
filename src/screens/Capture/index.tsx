@@ -10,6 +10,7 @@ import { useToastTop } from '@siga/context/toastProvider';
 import { registerFaceService } from '@siga/mock/services/registerFaceMock';
 import { validateFaceService } from '@siga/mock/services/validateFaceMock';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
+import { TypeArray } from '@siga/api/registerFaceService';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -30,33 +31,36 @@ export default function CaptureScreen() {
     const clearResult = useCaptureStore((state) => state.clearResult);
     const { getLocation } = useLocation();
 
-    const { modelState, model } = useEfficientDetModel();
+    const { model } = useEfficientDetModel();
 
-    const extractFile = async (imagePath: string) => {
+    /*const extractFile = async (imagePath: string) => {
         const response = await fetch(`file://${imagePath}`);
         const imageData = await response.arrayBuffer();
         return new Uint8Array(imageData);
-    };
+    };*/
 
-    const validateUserFace = async (imagePath: string, coords: CoordsProps) => {
-        const raw = await extractFile(imagePath);
-        const detector = await model?.run([raw]);
+    const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
+        /*const raw = await extractFile(imagePath);*/
+        //const detector = await model?.run([raw]);
         const { error, success } = await validateFaceService({
             latitude: coords?.latitude,
             longitude: coords?.longitude,
-            vector: detector,
+            vector: vector,
+        });
+        console.log(error);
+        setResult(success, error);
+    };
+
+    const registerUserFace = async (vector: TypeArray, id: string) => {
+        /*const raw = await extractFile(imagePath);*/
+        const { error, success } = await registerFaceService({
+            id: id,
+            vector: vector,
         });
         setResult(success, error);
     };
 
-    const registerUserFace = async (imagePath: string, id: string) => {
-        const raw = await extractFile(imagePath);
-        const detector = await model?.run([raw]);
-        const { error, success } = await registerFaceService({ id: id, vector: detector });
-        setResult(success, error);
-    };
-
-    const handleCapture = async (imagePath: string) => {
+    const handleCapture = async (_: string, vector: TypeArray) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
 
@@ -81,9 +85,9 @@ export default function CaptureScreen() {
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(imagePath, id);
+                await registerUserFace(vector, id);
             } else if (mode === 'validate') {
-                await validateUserFace(imagePath, location);
+                await validateUserFace(vector, location);
             } else {
                 showToast(`Modo desconocido: ${mode} o undefined`);
             }
@@ -104,7 +108,7 @@ export default function CaptureScreen() {
                 <Header mode={isLoading ? undefined : 'back'} />
             </View>
             {isLoading ? <ActivityIndicator color={colors.primary} size="large" /> : null}
-            {modelState === 'loaded' && isLoading === false ?
+            {model && isLoading === false ?
                 <CameraView
                     onCapture={handleCapture}
                     showCircleFace

@@ -1,4 +1,4 @@
-import { Camera, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
+import { Camera, Frame, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
@@ -10,13 +10,16 @@ import {
 } from 'react-native-vision-camera-face-detector';
 import { Worklets } from 'react-native-worklets-core';
 import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
+import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
+import { TypeArray } from '@siga/api/registerFaceService';
 
 interface Props {
-  onCapture: (path: string, bounds?: Bounds) => void;
+  onCapture: (path: string, vector: TypeArray) => void;
   showCircleFace?: boolean;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ onCapture, showCircleFace }: Props) {
   const { colors } = useTheme();
@@ -24,12 +27,14 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const device = useCameraDevice('front');
 
   const [hasFace, setHasFace] = useState(false);
-  const [bounds, setBounds] = useState<Bounds | undefined>(undefined);
+  const [vector, setVector] = useState<any>([]);
 
   const [hasPermission, setHasPermission] = useState(false);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({}).current;
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
+  const { resize } = useResizePlugin();
+  const { model } = useEfficientDetModel();
   useUnmountBrightness(1);
 
   useEffect(() => {
@@ -44,7 +49,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       try {
         /*** tomamos un screen shot en lugar de foto por que la foto queda oscura */
         const photo = await camera.current.takeSnapshot({ quality: 90 });
-        onCapture(photo.path, bounds);
+        onCapture(photo.path, vector);
       } catch (error) {
         console.error('❌ Error al capturar foto:', error);
       }
@@ -52,18 +57,37 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   };
 
   const handleDetectedFaces = Worklets.createRunOnJS((
-    faces: Face[]
+    faces: Face[],
   ) => {
     setHasFace((faces?.length ?? 0) > 0);
-    setBounds(faces[0]?.bounds);
   });
 
-  const frameProcessor = useFrameProcessor(async (frame) => {
+  const handleDetectedDectector = Worklets.createRunOnJS((
+    vector: TypeArray,
+  ) => {
+    setVector(vector);
+  });
+
+  const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     const faces = detectFaces(frame);
     handleDetectedFaces(faces);
 
-  }, [handleDetectedFaces]);
+
+    if (!model || model == null || faces.length <= 0) return;
+
+    const raw = resize(frame, {
+      scale: {
+        width: 160,
+        height: 160,
+      },
+      pixelFormat: 'rgb',
+      dataType: 'uint8',
+    });
+    const detector = model?.runSync([raw]);
+    handleDetectedDectector(detector[0]);
+
+  }, [handleDetectedFaces, handleDetectedDectector]);
 
   if (!device || !hasPermission) { return null; }
 
@@ -75,6 +99,9 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         device={device}
         isActive={true}
         frameProcessor={frameProcessor}
+        pixelFormat='yuv'
+        isMirrored={false}
+        outputOrientation='device'
       />
       {showCircleFace ? <View style={styles.circleOverlay} /> : null}
       <View style={styles.captureContainer}>
@@ -89,6 +116,19 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
 
         )}
       </View>
+
+      {/* <View
+        style={{
+          position: 'absolute',
+          left: (bounds?.x ?? 0) * (SCREEN_W / width),
+          top: (bounds?.y ?? 0) * (SCREEN_H / height),
+          width: (bounds?.width ?? 0) * (SCREEN_W / width),
+          height: (bounds?.height ?? 0) * (SCREEN_H / height),
+          borderWidth: 2,
+          borderColor: 'red',
+        }}
+      /> */}
+
     </View>
   );
 }
@@ -99,8 +139,8 @@ const styles = StyleSheet.create({
   circleOverlay: {
     position: 'absolute',
     borderStyle: 'dashed',
-    top: height / 2 - 240,
-    left: width / 2 - 140,
+    top: SCREEN_H / 2 - 240,
+    left: SCREEN_W / 2 - 140,
     width: 280,
     height: 400,
     borderRadius: 200,

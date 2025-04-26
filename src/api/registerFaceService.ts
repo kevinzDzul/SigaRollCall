@@ -14,7 +14,7 @@ export type TypeArray =
 
 export interface RegisterFaceRequest {
   id: string;
-  vector: TypeArray[] | undefined;
+  vector: TypeArray | undefined;
 }
 
 export interface RegisterFaceResponse {
