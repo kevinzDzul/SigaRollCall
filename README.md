@@ -1,97 +1,106 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# SigaRollCall
 
-# Getting Started
+**SigaRollCall** is a cross-platform mobile application built with React Native that facilitates roll call attendance and monitoring through real-time face detection and geolocation. The app leverages modern libraries and native modules to ensure high performance, smooth animations, and reliable error tracking.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Table of Contents
 
-## Step 1: Start Metro
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Dependencies](#dependencies)
+- [Development](#development)
+- [License](#license)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Features
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Real-time face detection powered by TensorFlow Lite and Vision Camera
+- Geolocation tracking for attendance verification
+- Intuitive navigation with bottom tabs and drawer menus
+- Smooth animations and gesture handling
+- Error monitoring with Sentry integration for crash reporting
+- Cross-platform support for Android and iOS
 
+## Prerequisites
+
+- Node.js >= 18.x
+- Yarn >= 1.22.x (or npm)
+- Android Studio (for Android builds)
+- Xcode and CocoaPods (for iOS builds)
+
+Refer to the [React Native Environment Setup](https://reactnative.dev/docs/environment-setup) guide for detailed instructions.
+
+## Installation
+
+Clone the repository and install dependencies:
 ```sh
-# Using npm
-npm start
+git clone <repository_url>
+cd SigaRollCall
+yarn install
+```
 
-# OR using Yarn
+For iOS, install CocoaPods dependencies:
+```sh
+cd ios
+bundle install
+bundle exec pod install
+cd ..
+```
+
+## Usage
+
+Start the Metro bundler:
+```sh
 yarn start
 ```
 
-## Step 2: Build and run your app
+In a separate terminal, launch the app:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- Android: `yarn android`
+- iOS: `yarn ios`
 
-### Android
+## Dependencies
 
-```sh
-# Using npm
-npm run android
+The project uses the following primary libraries:
 
-# OR using Yarn
-yarn android
-```
+| Package                                   | Version | Description                                                                                       |
+|-------------------------------------------|---------|---------------------------------------------------------------------------------------------------|
+| react                                     | 19.0.0  | Core library for building user interfaces                                                         |
+| react-native                              | 0.79.1  | Framework for building native mobile apps using React                                              |
+| @react-navigation/native                 | 7.0.14  | Core utilities and components for React Navigation                                                 |
+| @react-navigation/native-stack            | 7.2.0   | Native stack navigator for React Navigation                                                        |
+| @react-navigation/bottom-tabs             | 7.2.0   | Bottom tab navigator for seamless tab navigation                                                   |
+| @react-navigation/drawer                 | 7.1.1   | Drawer navigator for sidebar-style navigation                                                      |
+| react-native-gesture-handler              | 2.25.0  | Gesture handler for improved touch interactions                                                   |
+| react-native-reanimated                   | 3.17.4  | High-performance animations library                                                                |
+| react-native-screens                      | 4.10.0  | Native screen primitives for React Navigation                                                      |
+| react-native-safe-area-context            | 5.4.0   | Provides safe area boundaries for devices with notches and rounded corners                         |
+| react-native-safe-area-view               | 1.1.1   | Legacy safe area view component                                                                    |
+| @react-native-community/geolocation      | 3.4.0   | Access device GPS location                                                                          |
+| @react-native-community/image-editor     | 4.3.0   | Native image editing capabilities                                                                   |
+| @react-native-vector-icons/common        | 11.0.0  | Common interface for vector icons                                                                   |
+| @react-native-vector-icons/fontawesome6  | 6.7.1   | FontAwesome 6 icon pack                                                                            |
+| @react-native-vector-icons/ionicons      | 7.4.0   | Ionicons icon pack                                                                                  |
+| axios                                     | 1.8.4   | Promise-based HTTP client                                                                           |
+| add                                       | 2.0.6   | Utility library for basic arithmetic operations                                                     |
+| zustand                                   | 5.0.3   | Lightweight state management using hooks                                                            |
+| @sentry/react-native                     | 6.11.0  | React Native integration for Sentry error monitoring                                                |
+| @sentry/react                            | 9.14.0  | React integration for Sentry error monitoring                                                       |
+| react-native-vision-camera               | 4.6.4   | High-performance camera module for React Native                                                     |
+| react-native-vision-camera-face-detector | 1.8.2   | Face detection plugin for Vision Camera                                                             |
+| react-native-fast-tflite                  | 1.6.1   | TensorFlow Lite inference for React Native                                                          |
+| vision-camera-resize-plugin               | 3.2.0   | Image resizing plugin for Vision Camera                                                             |
+| @reeq/react-native-device-brightness     | 1.0.6   | Access and control device brightness                                                                |
+| lottie-react-native                       | 7.2.2   | Lottie animation support                                                                            |
 
-### iOS
+For a complete list, see [package.json](./package.json).
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Development
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+- Linting: `yarn lint`
+- Testing: `yarn test`
+- Formatting: `yarn prettier --check .`
 
-```sh
-bundle install
-```
+## License
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+MIT License
