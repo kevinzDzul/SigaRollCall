@@ -57,7 +57,7 @@ export default function CheckListScreen() {
         <TouchableOpacity
             onPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
             style={[styles.item, { backgroundColor: colors.surfaceContainerHighest }]}>
-            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{item.firstName}</CustomText>
+            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{`👤 ${item.firstName}`}</CustomText>
         </TouchableOpacity>
     );
 

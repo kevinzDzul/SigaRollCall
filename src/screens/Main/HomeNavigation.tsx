@@ -1,12 +1,18 @@
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import React from 'react';
+import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navigation/drawer';
 import HomeScreen from './Home';
 import CheckListScreen from './CheckList';
 import SettingsScreen from './Setting';
 import { useTheme } from '@siga/context/themeProvider';
 import { usePermissions } from '@siga/hooks/usePermissions';
 import { UserRole } from '@siga/constants/Roles';
+import DrawerSwitch from '@siga/components/DrawerSwitch';
 
 const Drawer = createDrawerNavigator();
+
+const renderCustomDrawerContent = (props: DrawerContentComponentProps) => (
+  <DrawerSwitch {...props} />
+);
 
 export default function HomeLayout() {
   const { colors } = useTheme();
@@ -24,6 +30,7 @@ export default function HomeLayout() {
 
   return (
     <Drawer.Navigator
+      drawerContent={renderCustomDrawerContent}
       screenOptions={{
         drawerStyle: {
           backgroundColor: colors.primary,

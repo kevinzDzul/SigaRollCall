@@ -11,10 +11,13 @@ import { useCaptureStore } from '@siga/store/capture';
 import { useToastTop } from '@siga/context/toastProvider';
 import { useLocation } from '@siga/hooks/useLocation';
 import { CustomText } from '@siga/components/CustomText';
+import TipCard from './components/TipsCard';
+import { useTheme } from '@siga/context/themeProvider';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function FacialRecognitionScreen() {
+  const { colors } = useTheme();
   const navigation = useNavigation<NavigationProp>();
 
   const showToast = useToastTop();
@@ -37,23 +40,23 @@ export default function FacialRecognitionScreen() {
     <Container >
       <Header mode="drawer" />
       <View style={styles.body}>
-        <View style={styles.iconContainer}>
-          <CustomText style={styles.emoji}>🤖</CustomText>
+        <View style={[styles.iconContainer, { backgroundColor: colors.surfaceVariant }]}>
+          <CustomText style={styles.emoji}>📸</CustomText>
         </View>
 
         <CustomText style={styles.title}>Reconocimiento Facial</CustomText>
         <CustomText style={styles.subtitle}>Coloca tu rostro frente a la cámara</CustomText>
 
         <View style={styles.tipsContainer}>
-          <CustomText style={styles.tip}>• Asegúrate de estar en un lugar bien iluminado 💡</CustomText>
-          <CustomText style={styles.tip}>• Mantén tu rostro centrado y sin objetos que lo cubran 👓</CustomText>
+          <TipCard emoji="💡" text="Asegúrate de estar en un lugar bien iluminado" style={styles.tipCard} />
+          <TipCard emoji=" 👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
         </View>
-
-        <Button
-          title="🔍 Validar Rostro"
-          onPress={() => navigation.navigate('CaptureScreen', { mode: 'validate' })}
-        />
       </View>
+      <Button
+        style={styles.button}
+        title="🔍 Validar Rostro"
+        onPress={() => navigation.navigate('CaptureScreen', { mode: 'validate' })}
+      />
     </Container>
   );
 }
@@ -61,13 +64,11 @@ export default function FacialRecognitionScreen() {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    backgroundColor: '#f1f2f6',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
   iconContainer: {
-    backgroundColor: '#dbeafe',
     padding: 16,
     borderRadius: 50,
     marginBottom: 16,
@@ -78,12 +79,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#475569',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -91,9 +90,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     alignSelf: 'stretch',
   },
-  tip: {
-    fontSize: 14,
-    color: '#334155',
-    marginBottom: 6,
+  tipCard: {
+    marginBottom: 8,
+  },
+  button: {
+    borderRadius: 0,
   },
 });
