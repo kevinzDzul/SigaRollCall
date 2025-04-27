@@ -5,6 +5,7 @@ import { ToastProvider } from '@siga/context/toastProvider';
 import RootNavigator from '@siga/navigation/RootNavigator';
 import * as Sentry from '@sentry/react-native';
 
+//TODO - activar sentry en produccion
 const isProduction = false;
 const config = {
   enabled: true, // true para produccion

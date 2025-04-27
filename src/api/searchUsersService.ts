@@ -22,18 +22,18 @@ export interface Employee {
 
 export interface SearchUsersResponse {
   success: boolean;
-  users: Employee[];
+  data: Employee[];
   message?: string;
 }
 
-function mapRawToEmployee(raw: RawEmployee): Employee {
-  return {
-    id: raw.id_empleado,
-    username: raw.usuario,
-    firstName: raw.nombre_empleado,
-    lastName: raw.a_paterno,
-    middleName: raw.a_materno,
-  };
+function mapRawToEmployee(raw: RawEmployee[]): Employee[] {
+  return raw.map((item) => ({
+    id: item.id_empleado, // TODO - convertir a camel case
+    username: item.usuario,
+    firstName: item.nombre_empleado,
+    lastName: item.a_paterno,
+    middleName: item.a_materno,
+  }));
 }
 
 export const searchUsersService = async (
@@ -41,11 +41,11 @@ export const searchUsersService = async (
 ): Promise<SearchUsersResponse> => {
   const response = await api.get<SearchUsersResponse, any, SearchUsersParams>(
     '/search_user.php',
-    { params }
+    { params: { ...params } }
   );
 
   return {
     ...response.data,
-    users: mapRawToEmployee(response.data.data),
+    data: mapRawToEmployee(response.data.data),
   };
 };

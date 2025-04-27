@@ -1,13 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Employee, SearchUsersParams } from '@siga/api/searchUsersService';
+import { Employee, SearchUsersParams, searchUsersService } from '@siga/api/searchUsersService';
 import Container from '@siga/components/Container';
 import { CustomText } from '@siga/components/CustomText';
 import Header from '@siga/components/Header';
 import { InputText } from '@siga/components/InputText';
 import { useTheme } from '@siga/context/themeProvider';
 import { useDebounce } from '@siga/hooks/useDebounce';
-import { searchUsersService } from '@siga/mock/services/searchUsersMock';
 import { RootStackParamList } from '@siga/screens/Capture';
 import React, { useEffect, useState } from 'react';
 import {
@@ -40,7 +39,7 @@ export default function CheckListScreen() {
         const params: SearchUsersParams = { query: debouncedQuery };
         searchUsersService(params).then((res) => {
             if (active && res?.success) {
-                setFilteredData(res?.users);
+                setFilteredData(res?.data);
             }
         }).catch((error) => {
             console.warn('Error buscando usuarios:', error);
@@ -55,6 +54,7 @@ export default function CheckListScreen() {
 
     const renderItem = (item: Employee) => (
         <TouchableOpacity
+            key={item.id}
             onPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
             style={[styles.item, { backgroundColor: colors.surfaceContainerHighest }]}>
             <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{`👤 ${item.firstName}`}</CustomText>
