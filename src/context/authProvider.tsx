@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '@siga/constants/Roles';
-import { loginService } from '@siga/mock/services/authServiceMock';
-//import { login } from '@siga/api/authService';
+import { loginService } from '@siga/api/authService';
 
 type LoginType = {
   user: string;
