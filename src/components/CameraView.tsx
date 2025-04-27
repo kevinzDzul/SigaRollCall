@@ -81,6 +81,12 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         width: 160,//requerido para el modelo
         height: 160,//requerido para el modelo
       },
+      crop: {
+        x: faces[0].bounds.y,
+        y: faces[0].bounds.x,
+        width: faces[0].bounds.height,
+        height: faces[0].bounds.width,
+      },
       rotation: '270deg',
       pixelFormat: 'rgb',
       dataType: 'float32',
