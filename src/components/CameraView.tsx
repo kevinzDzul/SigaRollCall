@@ -81,6 +81,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         width: 160,//requerido para el modelo
         height: 160,//requerido para el modelo
       },
+      rotation: '270deg',
       pixelFormat: 'rgb',
       dataType: 'float32',
     });
