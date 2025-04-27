@@ -22,6 +22,7 @@
     "@reeq/react-native-device-brightness": "^1.0.6",
     "@sentry/react": "^9.14.0",
     "@sentry/react-native": "^6.11.0",
+    "@shopify/react-native-skia": "^2.0.0-next.3",
     "add": "^2.0.6",
     "axios": "^1.8.4",
     "lottie-react-native": "^7.2.2",

@@ -1,5 +1,9 @@
 # SigaRollCall
 
+Codigo ejemplo de uso de resize: [resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
+
+Ejemplo Blur cara [Blur face](https://github.com/mrousavy/FaceBlurApp)
+
 **SigaRollCall** is a cross-platform mobile application built with React Native that facilitates roll call attendance and monitoring through real-time face detection and geolocation. The app leverages modern libraries and native modules to ensure high performance, smooth animations, and reliable error tracking.
 
 ## Table of Contents
