@@ -1,8 +1,5 @@
 # SigaRollCall
 
-Codigo ejemplo de uso de resize: [resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
-
-Ejemplo Blur cara [Blur face](https://github.com/mrousavy/FaceBlurApp)
 
 **SigaRollCall** is a cross-platform mobile application built with React Native that facilitates roll call attendance and monitoring through real-time face detection and geolocation. The app leverages modern libraries and native modules to ensure high performance, smooth animations, and reliable error tracking.
 
@@ -105,6 +102,23 @@ For a complete list, see [package.json](./package.json).
 - Testing: `yarn test`
 - Formatting: `yarn prettier --check .`
 
-## License
 
+**Referencias** 
+Herramienta para inspecionar un modelo (https://netron.app/)
+
+Post de ejemplo de tensorflow lite para react native [](https://mrousavy.com/blog/VisionCamera-Pose-Detection-TFLite)
+Post de medium dond explican como crear un proyecto similar [](https://proandroiddev.com/building-on-device-face-recognition-in-android-076a40dbaac6#acbe)
+Codigo ejemplo en android [](https://github.com/shubham0204/OnDevice-Face-Recognition-Android/tree/main)
+Codigo ejemplo en android [](https://github.com/shubham0204/FaceRecognition_With_FaceNet_Android/tree/master?tab=readme-ov-file)
+Codigo ejemplo en android [](https://github.com/pillarpond/face-recognizer-android/tree/master?tab=readme-ov-file)
+Codigo ejemplo en android [](https://medium.com/@estebanuri/real-time-face-recognition-with-android-tensorflow-lite-14e9c6cc53a5)
+Codigo ejemplo en android [](https://github.com/estebanuri/face_recognition?tab=readme-ov-file)
+Codigo ejemplo de uso de resize y vision camera: [resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
+Codigo Ejemplo Blur cara [Blur face](https://github.com/mrousavy/FaceBlurApp)
+Explicación de como cambiar tamaño de imagen y pasarle y analizarlo con un modelo de [tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15)
+
+
+
+
+## License
 MIT License
