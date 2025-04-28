@@ -4,18 +4,18 @@ import { ThemeProvider } from '@siga/context/themeProvider';
 import { ToastProvider } from '@siga/context/toastProvider';
 import RootNavigator from '@siga/navigation/RootNavigator';
 import * as Sentry from '@sentry/react-native';
+import Config from 'react-native-config';
 
-//TODO - activar sentry en produccion
-const isProduction = false;
+const sentryEnv = Config.SENTRY_ENV;
 const config = {
   enabled: true, // true para produccion
   debug: false, //false para produccion
   environment: 'production', // 'production' | 'development' para produccion
 };
 
-if (isProduction) {
+if (sentryEnv === 'production') {
   Sentry.init({
-    dsn: 'https://3cfa9ad43ede4cdbf73a516f0684d717@o4509216713474048.ingest.us.sentry.io/4509216717275136',
+    dsn: Config.SENTRY_DNS,
     ...config,
     // uncomment the line below to enable Spotlight (https://spotlightjs.com)
     // spotlight: __DEV__,
@@ -34,5 +34,5 @@ const App = () => {
   );
 };
 
-export default isProduction ? Sentry.wrap(App) : App;
+export default sentryEnv === 'production' ? Sentry.wrap(App) : App;
 

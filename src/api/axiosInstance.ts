@@ -3,6 +3,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import Config from 'react-native-config';
 
 const ENABLE_LOGS = true;
 
@@ -46,7 +47,7 @@ const logError = (error: any) => {
 
 // 🎛️ Instancia tipada
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'https://api.tudominio.com',
+  baseURL: Config.API_URL,
   timeout: 10000,
 });
 
