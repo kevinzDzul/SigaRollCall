@@ -60,9 +60,10 @@ export default function CaptureScreen() {
         setResult(success, error);
     };
 
-    const handleCapture = async (_: string, vector: TypeArray) => {
+    const handleCapture = async (vector: TypeArray) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
+        setIsLoading(true);
 
         const location = await getLocation();
 
@@ -80,8 +81,6 @@ export default function CaptureScreen() {
             showToast('Se requiere identificador');
             return;
         }
-
-        setIsLoading(true);
 
         try {
             if (mode === 'register' && id) {

@@ -14,7 +14,7 @@ import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { TypeArray } from '@siga/api/registerFaceService';
 
 interface Props {
-  onCapture: (path: string, vector: TypeArray) => void;
+  onCapture: (vector: TypeArray) => void;
   showCircleFace?: boolean;
 }
 
@@ -24,7 +24,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const { colors } = useTheme();
   const camera = useRef<Camera>(null);
   const device = useCameraDevice('front');
-  const format = useCameraFormat(device, [{ fps: 30 }]);
+  const format = useCameraFormat(device, [{ fps: 5 }]);
 
   const [hasFace, setHasFace] = useState(false);
 
@@ -53,9 +53,10 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const takePhoto = async () => {
     if (camera.current && hasFace) {
       try {
+        //TODO - mejorar esto por que no necesitamos la camara
         /*** tomamos un screen shot en lugar de foto por que la foto queda oscura */
-        const photo = await camera.current.takeSnapshot({ quality: 90 });
-        onCapture(photo.path, vectorData.value);
+        //const photo = await camera.current.takeSnapshot({ quality: 90 });
+        onCapture(vectorData.value);
       } catch (error) {
         console.error('❌ Error al capturar foto:', error);
       }
@@ -83,10 +84,10 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       },
       crop: {
         x: faces[0].bounds.y,
-        y:  faces[0].bounds.x,
+        y: faces[0].bounds.x,
         width: faces[0].bounds.height,
         height: faces[0].bounds.width,
-    },
+      },
       rotation: '270deg',
       pixelFormat: 'rgb',
       dataType: 'float32',
