@@ -106,13 +106,16 @@ export default function CaptureScreen() {
             <View style={styles.containerHeader}>
                 <Header mode={isLoading ? undefined : 'back'} />
             </View>
-            {isLoading ? <ActivityIndicator color={colors.primary} size="large" /> : null}
-            {model && isLoading === false ?
+            {isLoading ?
+                <View style={styles.containerLoading}>
+                    <ActivityIndicator color={colors.primary} size="large" />
+                </View>
+                : null}
+            {model && !isLoading ?
                 <CameraView
                     onCapture={handleCapture}
                     showCircleFace
-                />
-                : null
+                /> : null
             }
         </View>
     );
@@ -121,6 +124,10 @@ export default function CaptureScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    containerLoading: {
+        flex: 1,
+        justifyContent: 'center',
     },
     containerHeader: {
         position: 'absolute',
