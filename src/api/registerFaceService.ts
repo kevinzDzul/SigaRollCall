@@ -13,13 +13,14 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface RegisterFaceRequest {
-  id: string;
-  vector: string | undefined;
+  // TODO - manejar camel case
+  id_empleado: string;
+  vector_face: string | undefined;
 }
 
 export interface RegisterFaceResponse {
   success: boolean;
-  error: string | undefined;
+  message: string | undefined;
 }
 
 export const registerFaceService = async (

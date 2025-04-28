@@ -21,7 +21,7 @@ export default function FacialRecognitionScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   const showToast = useToastTop();
-  const status = useCaptureStore((state) => state.status);
+  const message = useCaptureStore((state) => state.error);
   const clearResult = useCaptureStore((state) => state.clearResult);
   const { checkAndRequestPermission } = useLocation();
 
@@ -30,11 +30,11 @@ export default function FacialRecognitionScreen() {
   }, [checkAndRequestPermission]);
 
   useEffect(() => {
-    if (status) {
-      showToast('Registro completo');
+    if (message) {
+      showToast(message, 'warning');
       clearResult();
     }
-  }, [status, showToast, clearResult]);
+  }, [message, showToast, clearResult]);
 
   return (
     <Container >

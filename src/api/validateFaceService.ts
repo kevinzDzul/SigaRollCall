@@ -13,24 +13,26 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface ValidateFaceRequest {
-  vector: string;
-  latitude?: number | null;
-  longitude?: number | null;
+  // TODO - ajustar a camel case
+  face_token: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface ValidateFaceResponse {
   success: boolean;
-  error: string | undefined;
+  message: string;
+  data: number[];
 }
 
 export const validateFaceService = async (
   data: ValidateFaceRequest
 ): Promise<ValidateFaceResponse> => {
   const response = await api.post<
-  ValidateFaceResponse,
+    ValidateFaceResponse,
     any,
     ValidateFaceRequest
-  >('/validate_face.php', data);
+  >('/check_user_assistance.php', data);
 
   return response.data;
 };
