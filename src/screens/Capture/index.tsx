@@ -7,10 +7,9 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useCaptureStore } from '@siga/store/capture';
 import { useTheme } from '@siga/context/themeProvider';
 import { useToastTop } from '@siga/context/toastProvider';
-import { registerFaceService } from '@siga/mock/services/registerFaceMock';
 import { validateFaceService } from '@siga/mock/services/validateFaceMock';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
-import { TypeArray } from '@siga/api/registerFaceService';
+import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -42,20 +41,21 @@ export default function CaptureScreen() {
     const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
         /*const raw = await extractFile(imagePath);*/
         //const detector = await model?.run([raw]);
+        const vectorRequest: number[] = Object.values(vector);
         const { error, success } = await validateFaceService({
             latitude: coords?.latitude,
             longitude: coords?.longitude,
-            vector: vector,
+            vector: JSON.stringify(vectorRequest),
         });
-        console.log(error);
         setResult(success, error);
     };
 
     const registerUserFace = async (vector: TypeArray, id: string) => {
         /*const raw = await extractFile(imagePath);*/
+        const vectorRequest: number[] = Object.values(vector);
         const { error, success } = await registerFaceService({
             id: id,
-            vector: vector,
+            vector: JSON.stringify(vectorRequest),
         });
         setResult(success, error);
     };

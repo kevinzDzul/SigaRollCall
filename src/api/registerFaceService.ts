@@ -14,7 +14,7 @@ export type TypeArray =
 
 export interface RegisterFaceRequest {
   id: string;
-  vector: TypeArray | undefined;
+  vector: string | undefined;
 }
 
 export interface RegisterFaceResponse {
@@ -29,7 +29,7 @@ export const registerFaceService = async (
     RegisterFaceResponse,
     any,
     RegisterFaceRequest
-  >('/register_face.php', data);
+  >('/face_vector_storage.php', data);
 
   return response.data;
 };

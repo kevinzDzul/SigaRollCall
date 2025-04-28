@@ -13,7 +13,7 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface ValidateFaceRequest {
-  vector: TypeArray | undefined;
+  vector: string;
   latitude?: number | null;
   longitude?: number | null;
 }
