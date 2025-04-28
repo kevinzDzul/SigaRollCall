@@ -104,7 +104,8 @@ For a complete list, see [package.json](./package.json).
 
 
 **Referencias** 
-Herramienta para inspecionar un modelo (https://netron.app/)
+
+- Herramienta para inspecionar un modelo (https://netron.app/)
 
 - Post de ejemplo de tensorflow lite para react native [Android](https://mrousavy.com/blog/VisionCamera-Pose-Detection-TFLite)
 - Post de medium dond explican como crear un proyecto similar 
