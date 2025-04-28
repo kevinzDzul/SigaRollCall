@@ -14,6 +14,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   isLoading: boolean;
   role?: UserRole | null;
+  username?: string;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => { },
   isLoading: true,
   role: null,
+  username: undefined,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -43,9 +45,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginAuth = async ({ user, password }: LoginType) => {
     setIsLoading(true);
     try {
-      const { profile, success, error } = await loginService({ usuario: user, password });
+      const { username, profile, success, error } = await loginService({ usuario: user, password });
       if (error || !success || !profile) { throw new Error(error); }
 
+      await AsyncStorage.setItem('username', `${username}`);
       await AsyncStorage.setItem('isLoggedIn', `${success}`);
       await AsyncStorage.setItem('userRole', `${profile}`);
       setRole(profile as UserRole);
@@ -59,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove(['isLoggedIn', 'userRole']);
+    await AsyncStorage.multiRemove(['isLoggedIn', 'userRole', 'username']);
     setIsLoggedIn(false);
     setRole(null);
   };

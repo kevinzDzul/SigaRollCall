@@ -6,12 +6,12 @@ import SettingsScreen from './Setting';
 import { useTheme } from '@siga/context/themeProvider';
 import { usePermissions } from '@siga/hooks/usePermissions';
 import { UserRole } from '@siga/constants/Roles';
-import DrawerSwitch from '@siga/components/DrawerSwitch';
+import DrawerContent from '@siga/components/DrawerContent';
 
 const Drawer = createDrawerNavigator();
 
 const renderCustomDrawerContent = (props: DrawerContentComponentProps) => (
-  <DrawerSwitch {...props} />
+  <DrawerContent {...props} />
 );
 
 export default function HomeLayout() {
