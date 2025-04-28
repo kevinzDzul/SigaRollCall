@@ -9,6 +9,7 @@ export async function validateFaceService(
 
   return {
     success: true,
-    error: undefined,
+    message: '',
+    data: [],
   };
 }

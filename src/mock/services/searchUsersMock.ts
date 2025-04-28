@@ -45,11 +45,11 @@ export async function searchUsersService(
 
   await new Promise((res: any) => setTimeout(res, 300));
 
-  const users: Employee[] = mockRawEmployees.map(mapRawToEmployee);
+  const data: Employee[] = mockRawEmployees.map(mapRawToEmployee);
 
   return {
     success: true,
-    users,
+    data,
     message: 'Mock: usuarios encontrados correctamente',
   };
 }

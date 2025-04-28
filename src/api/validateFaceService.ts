@@ -13,8 +13,7 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface ValidateFaceRequest {
-  // TODO - ajustar a camel case
-  face_token: string;
+  faceToken: string;
   lat?: number | null;
   lng?: number | null;
 }

@@ -45,7 +45,7 @@ export default function CaptureScreen() {
         const { message, success } = await validateFaceService({
             lat: coords?.latitude,
             lng: coords?.longitude,
-            face_token: JSON.stringify(vectorRequest),
+            faceToken: JSON.stringify(vectorRequest),
         });
         setResult(success, message);
     };
@@ -54,8 +54,8 @@ export default function CaptureScreen() {
         /*const raw = await extractFile(imagePath);*/
         const vectorRequest: number[] = Object.values(vector);
         const { message, success } = await registerFaceService({
-            id_empleado: id,
-            vector_face: JSON.stringify(vectorRequest),
+            idEmpleado: id,
+            vectorFace: JSON.stringify(vectorRequest),
         });
         setResult(success, message);
     };

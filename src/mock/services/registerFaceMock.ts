@@ -9,6 +9,6 @@ export async function registerFaceService(
 
   return {
     success: true,
-    error: undefined,
+    message: undefined,
   };
 }

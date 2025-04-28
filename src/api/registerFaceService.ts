@@ -13,9 +13,8 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface RegisterFaceRequest {
-  // TODO - manejar camel case
-  id_empleado: string;
-  vector_face: string | undefined;
+  idEmpleado: string;
+  vectorFace: string | undefined;
 }
 
 export interface RegisterFaceResponse {

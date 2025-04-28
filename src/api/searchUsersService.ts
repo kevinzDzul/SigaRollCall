@@ -5,11 +5,11 @@ export interface SearchUsersParams {
 }
 
 interface RawEmployee {
-  id_empleado: string;
+  idEmpleado: string;
   usuario: string;
-  nombre_empleado: string;
-  a_paterno: string;
-  a_materno: string;
+  nombreEmpleado: string;
+  aPaterno: string;
+  aMaterno: string;
 }
 
 export interface Employee {
@@ -28,11 +28,11 @@ export interface SearchUsersResponse {
 
 function mapRawToEmployee(raw: RawEmployee[]): Employee[] {
   return raw.map((item) => ({
-    id: item.id_empleado, // TODO - convertir a camel case
+    id: item.idEmpleado,
     username: item.usuario,
-    firstName: item.nombre_empleado,
-    lastName: item.a_paterno,
-    middleName: item.a_materno,
+    firstName: item.nombreEmpleado,
+    lastName: item.aPaterno,
+    middleName: item.aMaterno,
   }));
 }
 

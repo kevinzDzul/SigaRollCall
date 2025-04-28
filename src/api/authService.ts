@@ -6,7 +6,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  id_empleado: number;// TODO - ajustar para convertir en CamelCase
+  idEmpleado: number;
   success: boolean;
   username: string | undefined;
   profile: string | undefined;
