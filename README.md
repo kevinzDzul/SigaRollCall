@@ -106,16 +106,17 @@ For a complete list, see [package.json](./package.json).
 **Referencias** 
 Herramienta para inspecionar un modelo (https://netron.app/)
 
-Post de ejemplo de tensorflow lite para react native [Android](https://mrousavy.com/blog/VisionCamera-Pose-Detection-TFLite)
-Post de medium dond explican como crear un proyecto similar [Android](https://proandroiddev.com/building-on-device-face-recognition-in-android-076a40dbaac6#acbe)
-Codigo ejemplo en android [Android](https://github.com/shubham0204/OnDevice-Face-Recognition-Android/tree/main)
-Codigo ejemplo en android [Android](https://github.com/shubham0204/FaceRecognition_With_FaceNet_Android/tree/master?tab=readme-ov-file)
-Codigo ejemplo en android [Android](https://github.com/pillarpond/face-recognizer-android/tree/master?tab=readme-ov-file)
-Codigo ejemplo en android [Android](https://medium.com/@estebanuri/real-time-face-recognition-with-android-tensorflow-lite-14e9c6cc53a5)
-Codigo ejemplo en android [Android](https://github.com/estebanuri/face_recognition?tab=readme-ov-file)
-Codigo ejemplo de uso de resize y vision camera: [Resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
-Codigo Ejemplo Blur en cara con react native [Blur face](https://github.com/mrousavy/FaceBlurApp)
-Explicación de como cambiar tamaño de imagen, pasarle y analizarlo con un modelo de [Tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15)
+- Post de ejemplo de tensorflow lite para react native [Android](https://mrousavy.com/blog/VisionCamera-Pose-Detection-TFLite)
+- Post de medium dond explican como crear un proyecto similar 
+[Android](https://proandroiddev.com/building-on-device-face-recognition-in-android-076a40dbaac6#acbe)
+- Codigo ejemplo en android [Android](https://github.com/shubham0204/OnDevice-Face-Recognition-Android/tree/main)
+- Codigo ejemplo en android [Android](https://github.com/shubham0204/FaceRecognition_With_FaceNet_Android/tree/master?tab=readme-ov-file)
+- Codigo ejemplo en android [Android](https://github.com/pillarpond/face-recognizer-android/tree/master?tab=readme-ov-file)
+- Codigo ejemplo en android [Android](https://medium.com/@estebanuri/real-time-face-recognition-with-android-tensorflow-lite-14e9c6cc53a5)
+- Codigo ejemplo en android [Android](https://github.com/estebanuri/face_recognition?tab=readme-ov-file)
+- Codigo ejemplo de uso de resize y vision camera: [Resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
+- Codigo Ejemplo Blur en cara con react native [Blur face](https://github.com/mrousavy/FaceBlurApp)
+- Explicación de como cambiar tamaño de imagen, pasarle y analizarlo con un modelo de [Tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15)
 
 
 
