@@ -57,7 +57,7 @@ export default function CheckListScreen() {
             key={item.id}
             onPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
             style={[styles.item, { backgroundColor: colors.surfaceContainerHighest }]}>
-            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{`👤 ${item.firstName}`}</CustomText>
+            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{`👤 ${item.firstName} ${item.middleName} ${item.lastName}`}</CustomText>
         </TouchableOpacity>
     );
 
