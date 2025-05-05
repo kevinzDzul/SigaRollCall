@@ -10,7 +10,7 @@ export interface LoginResponse {
   success: boolean;
   username: string | undefined;
   profile: string | undefined;
-  error: string | undefined;
+  message: string | undefined;
 }
 
 export const loginService = async (data: LoginRequest): Promise<LoginResponse> => {

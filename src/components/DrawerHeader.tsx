@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     initial: {
-        fontSize: 28,
+        fontSize: 20,
         fontWeight: '700',
         color: '#FFF',
     },

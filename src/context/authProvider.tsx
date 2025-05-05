@@ -29,14 +29,17 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<UserRole | undefined | null>();
+  const [username, setUsername] = useState<string | undefined | null>();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadAuth = async () => {
+      const storeUsername = await AsyncStorage.getItem('username');
       const value = await AsyncStorage.getItem('isLoggedIn');
       const storedRole = await AsyncStorage.getItem('userRole');
       setIsLoggedIn(value === 'true');
       setRole(storedRole as UserRole);
+      setUsername(storeUsername);
       setIsLoading(false);
     };
     loadAuth();
@@ -45,8 +48,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginAuth = async ({ user, password }: LoginType) => {
     setIsLoading(true);
     try {
-      const { username, profile, success, error } = await loginService({ usuario: user, password });
-      if (error || !success || !profile) { throw new Error(error); }
+      const { username, profile, success, message } = await loginService({ usuario: user, password });
+      if (!success || !profile) { throw new Error(message); }
 
       await AsyncStorage.setItem('username', `${username}`);
       await AsyncStorage.setItem('isLoggedIn', `${success}`);
@@ -68,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login: loginAuth, logout, isLoading, role }}>
+    <AuthContext.Provider value={{ isLoggedIn, login: loginAuth, logout, isLoading, role, username }}>
       {children}
     </AuthContext.Provider>
   );
