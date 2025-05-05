@@ -14,7 +14,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   isLoading: boolean;
   role?: UserRole | null;
-  username?: string;
+  username?: string | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await AsyncStorage.setItem('username', `${username}`);
       await AsyncStorage.setItem('isLoggedIn', `${success}`);
       await AsyncStorage.setItem('userRole', `${profile}`);
+      setUsername(username);
       setRole(profile as UserRole);
       setIsLoggedIn(true);
     } catch (e) {

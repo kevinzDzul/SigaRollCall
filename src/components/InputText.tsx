@@ -20,9 +20,18 @@ type Props = TextInputProps & {
     onClear?: () => void;
 };
 
-export const InputText = ({ label, error, loading, onClear, value, ...props }: Props) => {
+export const InputText = ({
+    label,
+    error,
+    loading,
+    onClear,
+    value,
+    secureTextEntry,
+    ...props
+}: Props) => {
     const { colors } = useTheme();
     const [focused, setFocused] = useState(false);
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     const handleFocused = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         props.onFocus?.(e);
@@ -34,13 +43,15 @@ export const InputText = ({ label, error, loading, onClear, value, ...props }: P
         setFocused(false);
     };
 
+    const togglePassword = () => setPasswordVisible(prev => !prev);
+
     const borderColor = error
         ? colors.error
         : focused
             ? colors.primary
             : colors.outline;
 
-    const showRightIcon = !!value;
+    const showClearIcon = !!value;
 
     return (
         <View style={{ marginBottom: 16 }}>
@@ -49,42 +60,60 @@ export const InputText = ({ label, error, loading, onClear, value, ...props }: P
                     {label}
                 </CustomText>
             )}
+
             <View
                 style={[
                     styles.inputContainer,
                     {
                         backgroundColor: colors.surfaceContainerLow,
-                        borderColor: borderColor,
+                        borderColor,
                     },
                 ]}
             >
                 <TextInput
                     {...props}
                     value={value}
+                    secureTextEntry={secureTextEntry && !passwordVisible}
                     placeholderTextColor={colors.onSurfaceVariant}
-                    style={[
-                        styles.input,
-                        {
-                            color: colors.onSurface,
-                        },
-                    ]}
+                    style={[styles.input, { color: colors.onSurface }]}
                     onFocus={handleFocused}
                     onBlur={handleBlur}
                 />
-                {showRightIcon && (
-                    <View style={styles.iconContainer}>
-                        {loading ? (
-                            <ActivityIndicator size="small" color={colors.outline} />
-                        ) : (
-                            <TouchableOpacity onPress={onClear}>
-                                <Icon name="xmark" iconStyle="solid" size={20} color={colors.outline} />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                )}
+
+                <View style={styles.iconRow}>
+                    {/* 🙊 / 🙈  para ocultar/mostrar contraseña */}
+                    {secureTextEntry && (
+                        <TouchableOpacity onPress={togglePassword} style={styles.iconTouch}>
+                            <CustomText style={{ fontSize: 18 }}>
+                                {passwordVisible ? '🙈' : '🙊'}
+                            </CustomText>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* ❌ borrar texto o spinner de carga */}
+                    {showClearIcon && (
+                        <View style={styles.iconTouch}>
+                            {loading ? (
+                                <ActivityIndicator size="small" color={colors.outline} />
+                            ) : (
+                                <TouchableOpacity onPress={onClear}>
+                                    <Icon
+                                        name="xmark"
+                                        iconStyle="solid"
+                                        size={20}
+                                        color={colors.outline}
+                                    />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    )}
+                </View>
             </View>
+
             {!!error && (
-                <CustomText style={[styles.errorText, { color: colors.error }]}>{error}</CustomText>
+                <CustomText style={[styles.errorText, { color: colors.error }]}>
+                    {error}
+                </CustomText>
             )}
         </View>
     );
@@ -108,7 +137,13 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
     },
-    iconContainer: {
+    /* Agrupa íconos a la derecha */
+    iconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    /* Margen uniforme para cada botón */
+    iconTouch: {
         marginLeft: 8,
     },
     errorText: {

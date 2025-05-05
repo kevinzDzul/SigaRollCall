@@ -49,7 +49,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                     setVisible(false);
                     setToast(null);
                 });
-            }, 2500);
+            }, 4000);
         });
     }, [opacity]);
 
