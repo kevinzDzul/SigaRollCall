@@ -14,7 +14,7 @@ export type TypeArray =
 
 export interface RegisterFaceRequest {
   idEmpleado: string;
-  photo: string;
+  photo: string | undefined;
   vectorFace: string | undefined;
 }
 

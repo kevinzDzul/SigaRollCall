@@ -8,13 +8,12 @@ import {
   FaceDetectionOptions,
 } from 'react-native-vision-camera-face-detector';
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
-import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { TypeArray } from '@siga/api/registerFaceService';
 
 interface Props {
-  onCapture: (vector: TypeArray) => void;
+  onCapture: (vector: TypeArray, pathPhoto: string) => void;
   showCircleFace?: boolean;
 }
 
@@ -23,7 +22,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 export default function CameraView({ onCapture, showCircleFace }: Props) {
   const { colors } = useTheme();
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('front');
+  const device = useCameraDevice('back');
   const format = useCameraFormat(device, [{ fps: 5 }]);
 
   const [hasFace, setHasFace] = useState(false);
@@ -41,7 +40,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
   const { resize } = useResizePlugin();
   const { model } = useEfficientDetModel();
-  useUnmountBrightness(1);
+  //useUnmountBrightness(1);
 
   useEffect(() => {
     (async () => {
@@ -55,8 +54,8 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       try {
         //TODO - mejorar esto por que no necesitamos la camara
         /*** tomamos un screen shot en lugar de foto por que la foto queda oscura */
-        //const photo = await camera.current.takeSnapshot({ quality: 90 });
-        onCapture(vectorData.value);
+        const photo = await camera.current.takeSnapshot({ quality: 90 });
+        onCapture(vectorData.value, photo.path);
       } catch (error) {
         console.error('❌ Error al capturar foto:', error);
       }
@@ -75,7 +74,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
     handleDetectedFaces(faces);
 
 
-    if (!model || model == null || faces.length <= 0) return;
+    if (!model || model == null || faces.length <= 0) {return;}
 
     const raw = resize(frame, {
       scale: {
@@ -88,7 +87,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         width: faces[0].bounds.height,
         height: faces[0].bounds.width,
       },
-      rotation: '270deg',
+      rotation: '90deg',
       pixelFormat: 'rgb',
       dataType: 'float32',
     });

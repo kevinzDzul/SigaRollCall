@@ -10,6 +10,7 @@ import { useToastTop } from '@siga/context/toastProvider';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
+import { fetchImageToB64 } from '@siga/util/fileToBase64';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -50,17 +51,18 @@ export default function CaptureScreen() {
         setResult(success, message);
     };
 
-    const registerUserFace = async (vector: TypeArray, id: string) => {
-        /*const raw = await extractFile(imagePath);*/
+    const registerUserFace = async (vector: TypeArray, id: string, pathFile: string) => {
+        const base64 = await fetchImageToB64(pathFile);
         const vectorRequest: number[] = Object.values(vector);
         const { message, success } = await registerFaceService({
+            photo: 'data:image/jpeg;base64,' + base64,
             idEmpleado: id,
             vectorFace: JSON.stringify(vectorRequest),
         });
         setResult(success, message);
     };
 
-    const handleCapture = async (vector: TypeArray) => {
+    const handleCapture = async (vector: TypeArray, pathPhoto: string) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
         setIsLoading(true);
@@ -84,7 +86,7 @@ export default function CaptureScreen() {
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(vector, id);
+                await registerUserFace(vector, id, pathPhoto);
             } else if (mode === 'validate') {
                 await validateUserFace(vector, location);
             } else {
