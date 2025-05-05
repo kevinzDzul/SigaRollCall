@@ -17,8 +17,8 @@ export default function DrawerHeader() {
                 <CustomText style={styles.initial}>{initial}</CustomText>
             </View>
             <View style={styles.textBlock}>
-                <CustomText numberOfLines={1} style={[styles.name, { color: colors.onPrimary }]}>{username}</CustomText>
-                <CustomText style={[styles.role, { color: colors.onPrimary }]}>{`👤 Perfil: ${role?.toUpperCase()}`}</CustomText>
+                <CustomText numberOfLines={1} style={[styles.name, { color: colors.onPrimary }]}>{`Usuario: ${username}`}</CustomText>
+                <CustomText style={[styles.role, { color: colors.onPrimary }]}>{`Perfil: ${role?.toUpperCase()} 👤`}</CustomText>
             </View>
         </View>
     );
@@ -47,6 +47,6 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     textBlock: { flexShrink: 1 },
-    name: { fontSize: 17, fontWeight: '600' },
-    role: { fontSize: 14, marginTop: 2 },
+    name: { fontSize: 14, fontWeight: '600' },
+    role: { fontSize: 12, marginTop: 2 },
 });
