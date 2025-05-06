@@ -11,6 +11,7 @@ import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { TypeArray } from '@siga/api/registerFaceService';
+import { reportError } from '@siga/util/reportError';
 
 interface Props {
   onCapture: (vector: TypeArray, pathPhoto: string) => void;
@@ -57,7 +58,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         const photo = await camera.current.takeSnapshot({ quality: 90 });
         onCapture(vectorData.value, photo.path);
       } catch (error) {
-        console.error('❌ Error al capturar foto:', error);
+        reportError(error);
       }
     }
   };

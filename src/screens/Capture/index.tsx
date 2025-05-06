@@ -11,6 +11,7 @@ import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
+import { reportError } from '@siga/util/reportError';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -92,9 +93,9 @@ export default function CaptureScreen() {
             } else {
                 showToast(`Modo desconocido: ${mode} o undefined`);
             }
-        } catch (e) {
-            console.error(e);
-            showToast('Ocurrió un error durante el proceso');
+        } catch (error: any) {
+            reportError(error);
+            showToast(error.response?.data?.message ?? error?.message ?? 'Error desconocido');
             clearResult();
         } finally {
             setIsLoading(false);

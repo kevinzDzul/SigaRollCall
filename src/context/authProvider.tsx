@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '@siga/constants/Roles';
 import { loginService } from '@siga/api/authService';
+import { reportError } from '@siga/util/reportError';
 
 type LoginType = {
   user: string;
@@ -58,6 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setRole(profile as UserRole);
       setIsLoggedIn(true);
     } catch (e) {
+      reportError(e);
       setRole(undefined);
       setIsLoggedIn(false);
     } finally {
