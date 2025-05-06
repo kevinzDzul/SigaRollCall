@@ -1,6 +1,6 @@
 import { Camera, useCameraDevice, useCameraFormat, useFrameProcessor } from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
 import {
   Face,
@@ -21,7 +21,6 @@ interface Props {
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ onCapture, showCircleFace }: Props) {
-  const { colors } = useTheme();
   const camera = useRef<Camera>(null);
   const device = useCameraDevice('back');
   const format = useCameraFormat(device, [{ fps: 5 }]);
@@ -75,7 +74,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
     handleDetectedFaces(faces);
 
 
-    if (!model || model == null || faces.length <= 0) {return;}
+    if (!model || model == null || faces.length <= 0) { return; }
 
     const raw = resize(frame, {
       scale: {
@@ -114,29 +113,27 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       />
       {showCircleFace ? <View style={styles.circleOverlay} /> : null}
       <View style={styles.captureContainer}>
-        {!hasFace ? (
-          <ActivityIndicator color={colors.primary} size="large" />
-        ) : (
-          <TouchableOpacity
-            onPress={takePhoto}
-            style={styles.captureButtonOuter}>
-            <View style={styles.captureButtonInner} />
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={hasFace ? takePhoto : undefined}
+          style={[
+            styles.captureButtonOuter,
+            {
+              borderColor: hasFace ? 'white' : '#999',
+              backgroundColor: hasFace ? 'rgba(255,255,255,0.2)' : '#ccc',
+            },
+          ]}
+          activeOpacity={hasFace ? 0.8 : 1}
+        >
+          <View
+            style={[
+              styles.captureButtonInner,
+              { backgroundColor: hasFace ? 'white' : '#999' },
+            ]}
+          />
+        </TouchableOpacity>
 
-        )}
+
       </View>
-
-      {/* <View
-        style={{
-          position: 'absolute',
-          left: (bounds?.x ?? 0) * (SCREEN_W / width),
-          top: (bounds?.y ?? 0) * (SCREEN_H / height),
-          width: (bounds?.width ?? 0) * (SCREEN_W / width),
-          height: (bounds?.height ?? 0) * (SCREEN_H / height),
-          borderWidth: 2,
-          borderColor: 'red',
-        }}
-      /> */}
 
     </View>
   );
@@ -169,8 +166,6 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
-    borderColor: 'white',
-    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -178,6 +173,5 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'white',
   },
 });
