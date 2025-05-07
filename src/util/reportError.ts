@@ -5,6 +5,6 @@ export function reportError(error: unknown) {
   if (Config.SENTRY_ENV === 'production') {
     Sentry.captureException(error);
   } else {
-    console.error('❌[DEBUG ERROR]:', error);
+    console.error('❌ [DEBUG ERROR]:', error);
   }
 }

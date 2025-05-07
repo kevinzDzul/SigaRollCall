@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '@siga/constants/Roles';
 import { loginService } from '@siga/api/authService';
 import { reportError } from '@siga/util/reportError';
+import { useToastTop } from './toastProvider';
 
 type LoginType = {
   user: string;
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const showToast = useToastTop();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<UserRole | undefined | null>();
   const [username, setUsername] = useState<string | undefined | null>();
@@ -58,10 +60,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUsername(username);
       setRole(profile as UserRole);
       setIsLoggedIn(true);
-    } catch (e) {
-      reportError(e);
+    } catch (error: any) {
+      reportError(error);
       setRole(undefined);
       setIsLoggedIn(false);
+      showToast(error.response?.data?.message ?? error?.message ?? 'Error desconocido', 'error');
     } finally {
       setIsLoading(false);
     }
