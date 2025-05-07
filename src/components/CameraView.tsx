@@ -1,6 +1,6 @@
 import { Camera, useCameraDevice, useCameraFormat, useFrameProcessor } from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
 import {
   Face,
@@ -10,8 +10,8 @@ import {
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
-import { TypeArray } from '@siga/api/registerFaceService';
 import { reportError } from '@siga/util/reportError';
+import { TypeArray } from '@siga/api/registerFaceService';
 
 interface Props {
   onCapture: (vector: TypeArray, pathPhoto: string) => void;
@@ -22,25 +22,28 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ onCapture, showCircleFace }: Props) {
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('back');
+  const device = useCameraDevice('front');
   const format = useCameraFormat(device, [{ fps: 5 }]);
-
-  const [hasFace, setHasFace] = useState(false);
+  const theme = useTheme();
 
   const [hasPermission, setHasPermission] = useState(false);
+  const [hasFace, setHasFace] = useState(false);
+  const [blinkCount, setBlinkCount] = useState(0);
+  const [message, setMessage] = useState('Buscando rostro...');
+  const [done, setDone] = useState(false);
 
+  const prevEyeClosedRef = useRef(false);
   const vectorData = useSharedValue<any>([]);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     performanceMode: 'fast',
     contourMode: 'all',
-    landmarkMode: 'none',
-    classificationMode: 'none',
+    landmarkMode: 'all',
+    classificationMode: 'all',
   }).current;
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
   const { resize } = useResizePlugin();
   const { model } = useEfficientDetModel();
-  //useUnmountBrightness(1);
 
   useEffect(() => {
     (async () => {
@@ -50,37 +53,59 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   }, []);
 
   const takePhoto = async () => {
-    if (camera.current && hasFace) {
+    if (camera.current && hasFace && !done) {
       try {
-        //TODO - mejorar esto por que no necesitamos la camara
-        /*** tomamos un screen shot en lugar de foto por que la foto queda oscura */
         const photo = await camera.current.takeSnapshot({ quality: 90 });
         onCapture(vectorData.value, photo.path);
+        setMessage('Foto tomada exitosamente');
+        setDone(true);
       } catch (error) {
         reportError(error);
       }
     }
   };
 
-  const handleDetectedFaces = Worklets.createRunOnJS((
-    faces: Face[],
-  ) => {
-    setHasFace((faces?.length ?? 0) > 0);
+  const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
+    if (done) {return;}
+
+    if (faces.length === 0) {
+      setHasFace(false);
+      prevEyeClosedRef.current = false;
+      setBlinkCount(0);
+      setMessage('Se necesita rostro');
+      return;
+    }
+
+    setHasFace(true);
+    setMessage(`Parpadeos: ${blinkCount}/3`);
+
+    const face = faces[0];
+    const leftOpen = face.leftEyeOpenProbability ?? 1;
+    const rightOpen = face.rightEyeOpenProbability ?? 1;
+    const closed = leftOpen < 0.5 && rightOpen < 0.5;
+
+    if (!prevEyeClosedRef.current && closed) {
+      prevEyeClosedRef.current = true;
+    } else if (prevEyeClosedRef.current && !closed) {
+      prevEyeClosedRef.current = false;
+      const nextCount = blinkCount + 1;
+      setBlinkCount(nextCount);
+      setMessage(`Parpadeos: ${nextCount}/3`);
+      if (nextCount >= 3) {
+        takePhoto();
+      }
+    }
   });
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     const faces = detectFaces(frame);
-    handleDetectedFaces(faces);
+    handleFrame(faces);
 
-
-    if (!model || model == null || faces.length <= 0) { return; }
+    if (!model || faces.length === 0) {return;}
 
     const raw = resize(frame, {
-      scale: {
-        width: 160,//requerido para el modelo
-        height: 160,//requerido para el modelo
-      },
+      scale: { width: 160, height: 160 },
       crop: {
         x: faces[0].bounds.y,
         y: faces[0].bounds.x,
@@ -91,12 +116,11 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       pixelFormat: 'rgb',
       dataType: 'float32',
     });
-    const detector = model?.runSync([raw]);
+    const detector = model.runSync([raw]);
     vectorData.value = detector[0];
+  }, [handleFrame, model]);
 
-  }, [handleDetectedFaces]);
-
-  if (!device || !hasPermission) { return null; }
+  if (!device || !hasPermission) {return null;}
 
   return (
     <View style={styles.container}>
@@ -104,37 +128,19 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         ref={camera}
         style={styles.camera}
         device={device}
-        isActive={true}
+        isActive={!done}
         frameProcessor={frameProcessor}
         pixelFormat="yuv"
         isMirrored={false}
         outputOrientation="device"
         format={format}
       />
-      {showCircleFace ? <View style={styles.circleOverlay} /> : null}
-      <View style={styles.captureContainer}>
-        <TouchableOpacity
-          onPress={hasFace ? takePhoto : undefined}
-          style={[
-            styles.captureButtonOuter,
-            {
-              borderColor: hasFace ? 'white' : '#999',
-              backgroundColor: hasFace ? 'rgba(255,255,255,0.2)' : '#ccc',
-            },
-          ]}
-          activeOpacity={hasFace ? 0.8 : 1}
-        >
-          <View
-            style={[
-              styles.captureButtonInner,
-              { backgroundColor: hasFace ? 'white' : '#999' },
-            ]}
-          />
-        </TouchableOpacity>
 
+      {showCircleFace && !done && <View style={styles.circleOverlay} />}
 
+      <View style={styles.messageContainer}>
+        <Text style={[styles.messageText, { color: theme.colors.onPrimary }]}> {message} </Text>
       </View>
-
     </View>
   );
 }
@@ -155,23 +161,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 10,
   },
-  captureContainer: {
+  messageContainer: {
     position: 'absolute',
-    bottom: 50,
+    top: 50,
     alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 10,
+    borderRadius: 8,
     zIndex: 20,
   },
-  captureButtonOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captureButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  messageText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
