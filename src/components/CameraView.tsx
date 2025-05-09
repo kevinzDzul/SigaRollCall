@@ -6,15 +6,14 @@ import {
   Face,
   useFaceDetector,
   FaceDetectionOptions,
+  Bounds,
 } from 'react-native-vision-camera-face-detector';
-import { useSharedValue, Worklets } from 'react-native-worklets-core';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
-import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
+import { Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
-import { TypeArray } from '@siga/api/registerFaceService';
+import ImageEditor from '@react-native-community/image-editor';
 
 interface Props {
-  onCapture: (vector: TypeArray, pathPhoto: string) => void;
+  onCapture: (originalPath: string, cropPath: string) => void;
   showCircleFace?: boolean;
 }
 
@@ -22,7 +21,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ onCapture, showCircleFace }: Props) {
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('back');
+  const device = useCameraDevice('front');
   const format = useCameraFormat(device, [{ fps: 5 }]);
   const theme = useTheme();
 
@@ -33,17 +32,16 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const [done, setDone] = useState(false);
 
   const prevEyeClosedRef = useRef(false);
-  const vectorData = useSharedValue<any>([]);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    performanceMode: 'fast',
+    performanceMode: 'accurate',
     contourMode: 'all',
     landmarkMode: 'all',
     classificationMode: 'all',
+    windowWidth: SCREEN_W,
+    windowHeight: SCREEN_H,
   }).current;
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
-  const { resize } = useResizePlugin();
-  const { model } = useEfficientDetModel();
 
   useEffect(() => {
     (async () => {
@@ -52,11 +50,17 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
     })();
   }, []);
 
-  const takePhoto = async () => {
+  const takePhoto = async (bounds: Bounds) => {
     if (camera.current && hasFace && !done) {
       try {
-        const photo = await camera.current.takeSnapshot({ quality: 90 });
-        onCapture(vectorData.value, photo.path);
+        const photo = await camera.current.takeSnapshot();
+
+        const croppedUri = await ImageEditor.cropImage(`file://${photo.path}`, {
+          offset: { x: bounds.x, y: bounds.y },
+          size: { width: bounds.width, height: bounds.height },
+        });
+
+        onCapture(photo.path, croppedUri.path);
         setMessage('Foto tomada exitosamente');
         setDone(true);
       } catch (error) {
@@ -66,7 +70,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   };
 
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) {return;}
+    if (done) { return; }
 
     if (faces.length === 0) {
       setHasFace(false);
@@ -91,8 +95,8 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
       const nextCount = blinkCount + 1;
       setBlinkCount(nextCount);
       setMessage(`Parpadeos: ${nextCount}/3`);
-      if (nextCount >= 3) {
-        takePhoto();
+      if (nextCount >= 2) {
+        takePhoto(face.bounds);
       }
     }
   });
@@ -102,25 +106,9 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
     const faces = detectFaces(frame);
     handleFrame(faces);
 
-    if (!model || faces.length === 0) {return;}
+  }, [handleFrame]);
 
-    const raw = resize(frame, {
-      scale: { width: 160, height: 160 },
-      crop: {
-        x: faces[0].bounds.y,
-        y: faces[0].bounds.x,
-        width: faces[0].bounds.height,
-        height: faces[0].bounds.width,
-      },
-      rotation: '90deg',
-      pixelFormat: 'rgb',
-      dataType: 'float32',
-    });
-    const detector = model.runSync([raw]);
-    vectorData.value = detector[0];
-  }, [handleFrame, model]);
-
-  if (!device || !hasPermission) {return null;}
+  if (!device || !hasPermission) { return null; }
 
   return (
     <View style={styles.container}>

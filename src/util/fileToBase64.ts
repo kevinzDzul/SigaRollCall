@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 
 export async function fetchImageToB64(url: string) {
-  const res = await fetch(`file://${url}`);
+  const res = await fetch(url);
   if (!res.ok) {throw new Error('🥶 ' + res.status);}
   const ab = await res.arrayBuffer();
   return Buffer.from(ab).toString('base64');

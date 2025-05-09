@@ -10,8 +10,9 @@ import { useToastTop } from '@siga/context/toastProvider';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
-import { fetchImageToB64 } from '@siga/util/fileToBase64';
 import { reportError } from '@siga/util/reportError';
+import { getArrayBufferForBlob } from "react-native-blob-jsi-helper";
+import { fetchImageToB64 } from '@siga/util/fileToBase64';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -40,10 +41,19 @@ export default function CaptureScreen() {
         return new Uint8Array(imageData);
     };*/
 
-    const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
-        /*const raw = await extractFile(imagePath);*/
-        //const detector = await model?.run([raw]);
-        const vectorRequest: number[] = Object.values(vector);
+    const generateFaceNet = async (path: string): Promise<TypeArray> => {
+        console.log(path);
+        const imageResource = await fetch(path);
+        const blob = await imageResource.blob();
+        const arrayBuffer = getArrayBufferForBlob(blob);
+        const detector = await model?.run([arrayBuffer]);
+        return detector!![0];
+
+    };
+
+    const validateUserFace = async (cropPath: string, coords: CoordsProps) => {
+        const detector = await generateFaceNet(`file://${cropPath}`);
+        const vectorRequest: number[] = Object.values(detector);
         const { message, success } = await validateFaceService({
             lat: coords?.latitude,
             lng: coords?.longitude,
@@ -52,18 +62,19 @@ export default function CaptureScreen() {
         setResult(success, message);
     };
 
-    const registerUserFace = async (vector: TypeArray, id: string, pathFile: string) => {
-        const base64 = await fetchImageToB64(pathFile);
-        const vectorRequest: number[] = Object.values(vector);
+    const registerUserFace = async (originalPath: string, cropPath: string, id: string) => {
+        const base64 = await fetchImageToB64(`file://${originalPath}`);
+        const detector = await generateFaceNet(`file://${cropPath}`);
+        const vectorRequest: number[] = Object.values(detector);
         const { message, success } = await registerFaceService({
-            photo: 'data:image/jpeg;base64,' + base64,
+            photo: base64,
             idEmpleado: id,
             vectorFace: JSON.stringify(vectorRequest),
         });
         setResult(success, message);
     };
 
-    const handleCapture = async (vector: TypeArray, pathPhoto: string) => {
+    const handleCapture = async (originalPath: string, cropPath: string) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
         setIsLoading(true);
@@ -87,9 +98,9 @@ export default function CaptureScreen() {
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(vector, id, pathPhoto);
+                await registerUserFace(originalPath, cropPath, id);
             } else if (mode === 'validate') {
-                await validateUserFace(vector, location);
+                await validateUserFace(cropPath, location);
             } else {
                 showToast(`Modo desconocido: ${mode} o undefined`);
             }
