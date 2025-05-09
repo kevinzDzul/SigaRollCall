@@ -117,7 +117,7 @@ For a complete list, see [package.json](./package.json).
 - Codigo ejemplo en android [Android](https://github.com/estebanuri/face_recognition?tab=readme-ov-file)
 - Codigo ejemplo de uso de resize y vision camera: [Resize](https://github.com/c-goettert/vision-camera-resize-plugin-debug-demo/tree/main)
 - Codigo Ejemplo Blur en cara con react native [Blur face](https://github.com/mrousavy/FaceBlurApp)
-- Explicación de como cambiar tamaño de imagen, pasarle y analizarlo con un modelo de [Tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15)
+- Explicación de como cambiar tamaño de imagen, pasarle y analizarlo con un modelo de [Tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15#issuecomment-1898049628)
 
 
 

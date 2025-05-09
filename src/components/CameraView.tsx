@@ -21,7 +21,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ onCapture, showCircleFace }: Props) {
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('front');
+  const device = useCameraDevice('back');
   const format = useCameraFormat(device, [{ fps: 5 }]);
   const theme = useTheme();
 
