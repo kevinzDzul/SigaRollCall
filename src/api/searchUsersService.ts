@@ -10,6 +10,8 @@ interface RawEmployee {
   nombreEmpleado: string;
   aPaterno: string;
   aMaterno: string;
+  message: string | undefined;
+  faceCompleted: boolean | undefined;
 }
 
 export interface Employee {
@@ -17,7 +19,8 @@ export interface Employee {
   username: string;
   firstName: string;
   lastName: string;
-  middleName: string;
+  message: string | undefined;
+  faceCompleted: boolean | undefined;
 }
 
 export interface SearchUsersResponse {
@@ -31,8 +34,9 @@ function mapRawToEmployee(raw: RawEmployee[]): Employee[] {
     id: item.idEmpleado,
     username: item.usuario,
     firstName: item.nombreEmpleado,
-    lastName: item.aPaterno,
-    middleName: item.aMaterno,
+    lastName: `${item?.aPaterno ?? ''} ${item?.aMaterno ?? ''}`,
+    message: item.message,
+    faceCompleted: item.faceCompleted,
   }));
 }
 

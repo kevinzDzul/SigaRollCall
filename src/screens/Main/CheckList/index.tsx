@@ -5,7 +5,9 @@ import Container from '@siga/components/Container';
 import { CustomText } from '@siga/components/CustomText';
 import Header from '@siga/components/Header';
 import { InputText } from '@siga/components/InputText';
+import UserCard from '@siga/components/UserCard';
 import { useTheme } from '@siga/context/themeProvider';
+import { useToastTop } from '@siga/context/toastProvider';
 import { useDebounce } from '@siga/hooks/useDebounce';
 import { RootStackParamList } from '@siga/screens/Capture';
 import React, { useEffect, useState } from 'react';
@@ -13,12 +15,12 @@ import {
     View,
     FlatList,
     StyleSheet,
-    TouchableOpacity,
 } from 'react-native';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function CheckListScreen() {
+    const showToast = useToastTop();
     const { colors } = useTheme();
     const navigation = useNavigation<NavigationProp>();
     const [query, setQuery] = useState('');
@@ -39,26 +41,30 @@ export default function CheckListScreen() {
         const params: SearchUsersParams = { query: debouncedQuery };
         searchUsersService(params).then((res) => {
             if (active && res?.success) {
-                setFilteredData(res?.data);
+                const sorted = [...res.data].sort((a, b) => {
+                    return (b.faceCompleted ? 1 : 0) - (a.faceCompleted ? 1 : 0);
+                });
+                setFilteredData(sorted);
             }
         }).catch((error) => {
             console.warn('Error buscando usuarios:', error);
+            showToast(error.response?.data?.message ?? error?.message ?? 'Error buscando usuarios');
             if (active) { setFilteredData([]); }
         }).finally(() => active && setLoading(false));
 
         return () => {
             active = false;
         };
-    }, [debouncedQuery]);
+    }, [debouncedQuery, showToast]);
 
 
     const renderItem = (item: Employee) => (
-        <TouchableOpacity
-            key={item.id}
-            onPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
-            style={[styles.item, { backgroundColor: colors.surfaceContainerHighest }]}>
-            <CustomText style={[styles.itemText, { color: colors.onSurface }]}>{`👤 ${item.firstName} ${item.middleName} ${item.lastName}`}</CustomText>
-        </TouchableOpacity>
+        <UserCard
+            name={`${item.firstName} ${item.lastName}`}
+            username={item.username}
+            isFaceCompleted={item.faceCompleted}
+            onOptionsPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
+        />
     );
 
     return (
@@ -95,11 +101,5 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 16,
     },
-    item: {
-        padding: 16,
-        marginBottom: 8,
-        borderRadius: 8,
-    },
-    itemText: { fontSize: 16 },
     noResults: { textAlign: 'center', marginTop: 20 },
 });
