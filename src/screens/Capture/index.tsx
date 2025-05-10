@@ -11,7 +11,7 @@ import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
-import { getArrayBufferForBlob } from "react-native-blob-jsi-helper";
+import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
 
 export type RootStackParamList = {
@@ -42,7 +42,6 @@ export default function CaptureScreen() {
     };*/
 
     const generateFaceNet = async (path: string): Promise<TypeArray> => {
-        console.log(path);
         const imageResource = await fetch(path);
         const blob = await imageResource.blob();
         const arrayBuffer = getArrayBufferForBlob(blob);

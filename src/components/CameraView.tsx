@@ -34,7 +34,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const prevEyeClosedRef = useRef(false);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    performanceMode: 'accurate',
+    performanceMode: 'fast',
     contourMode: 'all',
     landmarkMode: 'all',
     classificationMode: 'all',
@@ -58,6 +58,8 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         const croppedUri = await ImageEditor.cropImage(`file://${photo.path}`, {
           offset: { x: bounds.x, y: bounds.y },
           size: { width: bounds.width, height: bounds.height },
+          displaySize: { width: 160, height: 160 },
+          resizeMode: 'contain',
         });
 
         onCapture(photo.path, croppedUri.path);
