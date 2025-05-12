@@ -13,6 +13,7 @@ export type TypeArray =
   | BigUint64Array;
 
 export interface RegisterFaceRequest {
+  empleadoIdLogged?: number;
   idEmpleado: string;
   photo: string | undefined;
   vectorFace: string | undefined;

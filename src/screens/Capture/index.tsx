@@ -13,6 +13,7 @@ import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
 import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
+import { useAuth } from '@siga/context/authProvider';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -25,6 +26,7 @@ type CaptureScreenRouteProp = RouteProp<RootStackParamList, 'CaptureScreen'>
 
 export default function CaptureScreen() {
     const { colors } = useTheme();
+    const { user } = useAuth();
     const route = useRoute<CaptureScreenRouteProp>();
     const showToast = useToastTop();
     const { goBack } = useNavigation();
@@ -54,6 +56,7 @@ export default function CaptureScreen() {
         const detector = await generateFaceNet(`file://${cropPath}`);
         const vectorRequest: number[] = Object.values(detector);
         const { message, success } = await validateFaceService({
+            empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
             lng: coords?.longitude,
             faceToken: JSON.stringify(vectorRequest),
@@ -66,6 +69,7 @@ export default function CaptureScreen() {
         const detector = await generateFaceNet(`file://${cropPath}`);
         const vectorRequest: number[] = Object.values(detector);
         const { message, success } = await registerFaceService({
+            empleadoIdLogged: user?.idEmpleado,
             photo: base64,
             idEmpleado: id,
             vectorFace: JSON.stringify(vectorRequest),

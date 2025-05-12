@@ -16,6 +16,7 @@ export interface ValidateFaceRequest {
   faceToken: string;
   lat?: number | null;
   lng?: number | null;
+  empleadoIdLogged?: number;
 }
 
 export interface ValidateFaceResponse {

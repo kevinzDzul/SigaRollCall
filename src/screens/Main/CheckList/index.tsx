@@ -41,6 +41,7 @@ export default function CheckListScreen() {
         const params: SearchUsersParams = { query: debouncedQuery };
         searchUsersService(params).then((res) => {
             if (active && res?.success) {
+                console.log(res.data);
                 const sorted = [...res.data].sort((a, b) => {
                     return (b.faceCompleted ? 1 : 0) - (a.faceCompleted ? 1 : 0);
                 });
@@ -58,12 +59,21 @@ export default function CheckListScreen() {
     }, [debouncedQuery, showToast]);
 
 
+    const handleItem = (item: Employee) => {
+        if (item?.faceCompleted) {
+            item?.message && showToast(item?.message);
+            return;
+        }
+
+        navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' });
+    };
+
     const renderItem = (item: Employee) => (
         <UserCard
             name={`${item.firstName} ${item.lastName}`}
             username={item.username}
             isFaceCompleted={item.faceCompleted}
-            onOptionsPress={() => navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' })}
+            onOptionsPress={() => handleItem(item)}
         />
     );
 

@@ -8,8 +8,8 @@ import { useAuth } from '@siga/context/authProvider';
 
 export default function DrawerHeader() {
     const { colors } = useTheme();
-    const { username, role } = useAuth();
-    const initial = (username?.trim()?.[0] || '🥷').toUpperCase();
+    const { user } = useAuth();
+    const initial = (user?.username?.trim()?.[0] || '🥷').toUpperCase();
 
     return (
         <View style={[styles.container, { borderColor: colors.onBackground }]}>
@@ -17,8 +17,8 @@ export default function DrawerHeader() {
                 <CustomText style={styles.initial}>{initial}</CustomText>
             </View>
             <View style={styles.textBlock}>
-                <CustomText numberOfLines={1} style={[styles.name, { color: colors.onPrimary }]}>{`Usuario: ${username}`}</CustomText>
-                <CustomText style={[styles.role, { color: colors.onPrimary }]}>{`Perfil: ${role?.toUpperCase()} 👤`}</CustomText>
+                <CustomText numberOfLines={1} style={[styles.name, { color: colors.onPrimary }]}>{`Usuario: ${user?.username}`}</CustomText>
+                <CustomText style={[styles.role, { color: colors.onPrimary }]}>{`Perfil: ${user?.profile?.toUpperCase()} 👤`}</CustomText>
             </View>
         </View>
     );

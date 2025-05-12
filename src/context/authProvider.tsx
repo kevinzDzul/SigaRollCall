@@ -10,13 +10,20 @@ type LoginType = {
   password: string;
 };
 
+type UserType = {
+  idEmpleado?: number;
+  success?: boolean;
+  username?: string;
+  profile?: UserRole;
+  message?: string;
+}
+
 type AuthContextType = {
   isLoggedIn: boolean;
-  login: (role: LoginType) => Promise<void>;
+  login: ({ user, password }: LoginType) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
-  role?: UserRole | null;
-  username?: string | null;
+  user?: UserType;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,25 +31,35 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   logout: async () => { },
   isLoading: true,
-  role: null,
-  username: undefined,
+  user: undefined,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const showToast = useToastTop();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState<UserRole | undefined | null>();
-  const [username, setUsername] = useState<string | undefined | null>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [myUser, setMyUser] = useState<UserType>();
 
   useEffect(() => {
     const loadAuth = async () => {
-      const storeUsername = await AsyncStorage.getItem('username');
+      const currentUser = await AsyncStorage.getItem('user');
       const value = await AsyncStorage.getItem('isLoggedIn');
-      const storedRole = await AsyncStorage.getItem('userRole');
-      setIsLoggedIn(value === 'true');
-      setRole(storedRole as UserRole);
-      setUsername(storeUsername);
+
+      if (currentUser != null) {
+        setIsLoggedIn(value === 'true');
+
+        const parseUser = JSON.parse(currentUser);
+        setMyUser({
+          idEmpleado: parseUser?.idEmpleado,
+          success: parseUser?.success,
+          username: parseUser?.username,
+          profile: parseUser?.profile as UserRole,
+          message: parseUser?.message,
+        });
+      }
+
+
+
       setIsLoading(false);
     };
     loadAuth();
@@ -51,18 +68,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginAuth = async ({ user, password }: LoginType) => {
     setIsLoading(true);
     try {
-      const { username, profile, success, message } = await loginService({ usuario: user, password });
-      if (!success || !profile) { throw new Error(message); }
+      const currentUser = await loginService({ usuario: user, password });
+      if (!currentUser?.success || !currentUser?.profile) { throw new Error(currentUser?.message); }
 
-      await AsyncStorage.setItem('username', `${username}`);
-      await AsyncStorage.setItem('isLoggedIn', `${success}`);
-      await AsyncStorage.setItem('userRole', `${profile}`);
-      setUsername(username);
-      setRole(profile as UserRole);
+      await AsyncStorage.setItem('user', JSON.stringify(currentUser));
+      await AsyncStorage.setItem('isLoggedIn', `${currentUser?.success}`);
+
+      setMyUser({
+        idEmpleado: currentUser?.idEmpleado,
+        success: currentUser?.success,
+        username: currentUser?.username,
+        profile: currentUser?.profile as UserRole,
+        message: currentUser?.message,
+      });
+
       setIsLoggedIn(true);
     } catch (error: any) {
       reportError(error);
-      setRole(undefined);
+      setMyUser(undefined);
       setIsLoggedIn(false);
       showToast(error.response?.data?.message ?? error?.message ?? 'Error desconocido', 'error');
     } finally {
@@ -71,13 +94,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove(['isLoggedIn', 'userRole', 'username']);
+    await AsyncStorage.multiRemove(['isLoggedIn', 'user']);
     setIsLoggedIn(false);
-    setRole(null);
+    setMyUser(undefined);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login: loginAuth, logout, isLoading, role, username }}>
+    <AuthContext.Provider value={{ isLoggedIn, login: loginAuth, logout, isLoading, user: myUser }}>
       {children}
     </AuthContext.Provider>
   );

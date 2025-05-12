@@ -31,12 +31,12 @@ export interface SearchUsersResponse {
 
 function mapRawToEmployee(raw: RawEmployee[]): Employee[] {
   return raw.map((item) => ({
-    id: item.idEmpleado,
-    username: item.usuario,
-    firstName: item.nombreEmpleado,
+    id: item?.idEmpleado,
+    username: item?.usuario,
+    firstName: item?.nombreEmpleado,
     lastName: `${item?.aPaterno ?? ''} ${item?.aMaterno ?? ''}`,
-    message: item.message,
-    faceCompleted: item.faceCompleted,
+    message: item?.message,
+    faceCompleted: item?.faceCompleted,
   }));
 }
 

@@ -2,14 +2,14 @@ import { UserRole } from '@siga/constants/Roles';
 import { useAuth } from '@siga/context/authProvider';
 
 export const usePermissions = () => {
-    const { role } = useAuth();
+    const { user } = useAuth();
 
     const canAccess = (requiredRoles: UserRole | UserRole[]) => {
-        if (!role) { return false; }
+        if (!user?.profile) { return false; }
         if (Array.isArray(requiredRoles)) {
-            return requiredRoles.includes(role);
+            return requiredRoles.includes(user?.profile);
         }
-        return role === requiredRoles;
+        return user?.profile === requiredRoles;
     };
 
     return { canAccess };
