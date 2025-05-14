@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import CameraView from '@siga/components/CameraView';
 import Header from '@siga/components/Header';
@@ -14,6 +14,9 @@ import { reportError } from '@siga/util/reportError';
 import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
 import { useAuth } from '@siga/context/authProvider';
+import { CameraPosition } from 'react-native-vision-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEY } from '@siga/components/SwitchCamera';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -31,6 +34,23 @@ export default function CaptureScreen() {
     const showToast = useToastTop();
     const { goBack } = useNavigation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [cameraType, setCameraType] = useState<CameraPosition>('front');
+
+    useEffect(() => {
+        // Cargar el valor guardado al iniciar
+        const loadSwitchValue = async () => {
+            try {
+                const savedValue = await AsyncStorage.getItem(STORAGE_KEY);
+                if (savedValue !== null) {
+                    setCameraType(savedValue === 'true' ? 'back' : 'front');
+                }
+            } catch (e) {
+                console.error('Error loading switch value:', e);
+            }
+        };
+        loadSwitchValue();
+    }, []);
+
     const setResult = useCaptureStore((state) => state.setResult);
     const clearResult = useCaptureStore((state) => state.clearResult);
     const { getLocation } = useLocation();
@@ -130,6 +150,7 @@ export default function CaptureScreen() {
                 : null}
             {model && !isLoading ?
                 <CameraView
+                    position={cameraType}
                     onCapture={handleCapture}
                     showCircleFace
                 /> : null

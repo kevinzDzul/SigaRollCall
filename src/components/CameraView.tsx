@@ -1,4 +1,4 @@
-import { Camera, useCameraDevice, useCameraFormat, useFrameProcessor } from 'react-native-vision-camera';
+import { Camera, CameraPosition, useCameraDevice, useCameraFormat, useFrameProcessor } from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
@@ -8,21 +8,22 @@ import {
   FaceDetectionOptions,
   Bounds,
 } from 'react-native-vision-camera-face-detector';
-import { Worklets } from 'react-native-worklets-core';
+import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
 import ImageEditor from '@react-native-community/image-editor';
 
 interface Props {
+  position?: CameraPosition;
   onCapture: (originalPath: string, cropPath: string) => void;
   showCircleFace?: boolean;
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
-export default function CameraView({ onCapture, showCircleFace }: Props) {
+export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
   const camera = useRef<Camera>(null);
-  const device = useCameraDevice('back');
-  const format = useCameraFormat(device, [{ fps: 5 }]);
+  const device = useCameraDevice(position);
+  const format = useCameraFormat(device, [{ fps: 15, iso: 'min' }]);
   const theme = useTheme();
 
   const [hasPermission, setHasPermission] = useState(false);
@@ -31,12 +32,10 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
 
-  const prevEyeClosedRef = useRef(false);
+  const prevEyeClosedData = useSharedValue<boolean | undefined>(undefined);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     performanceMode: 'fast',
-    contourMode: 'all',
-    landmarkMode: 'all',
     classificationMode: 'all',
     windowWidth: SCREEN_W,
     windowHeight: SCREEN_H,
@@ -76,7 +75,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
 
     if (faces.length === 0) {
       setHasFace(false);
-      prevEyeClosedRef.current = false;
+      prevEyeClosedData.value = false;
       setBlinkCount(0);
       setMessage('Se necesita rostro');
       return;
@@ -88,16 +87,16 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
     const face = faces[0];
     const leftOpen = face.leftEyeOpenProbability ?? 1;
     const rightOpen = face.rightEyeOpenProbability ?? 1;
-    const closed = leftOpen < 0.5 && rightOpen < 0.5;
+    const closed = leftOpen < 0.4 || rightOpen < 0.4;
 
-    if (!prevEyeClosedRef.current && closed) {
-      prevEyeClosedRef.current = true;
-    } else if (prevEyeClosedRef.current && !closed) {
-      prevEyeClosedRef.current = false;
+    if (!prevEyeClosedData.value && closed) {
+      prevEyeClosedData.value = true;
+    } else if (prevEyeClosedData.value && !closed) {
+      prevEyeClosedData.value = false;
       const nextCount = blinkCount + 1;
       setBlinkCount(nextCount);
       setMessage(`Parpadeos: ${nextCount}/3`);
-      if (nextCount >= 2) {
+      if (nextCount >= 3) {
         takePhoto(face.bounds);
       }
     }
@@ -121,6 +120,7 @@ export default function CameraView({ onCapture, showCircleFace }: Props) {
         isActive={!done}
         frameProcessor={frameProcessor}
         pixelFormat="yuv"
+        focusable={true}
         isMirrored={false}
         outputOrientation="device"
         format={format}

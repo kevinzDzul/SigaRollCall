@@ -2,6 +2,7 @@ import Button from '@siga/components/Button';
 import Container from '@siga/components/Container';
 import { CustomText } from '@siga/components/CustomText';
 import Header from '@siga/components/Header';
+import PersistentSwitch from '@siga/components/SwitchCamera';
 import { useAuth } from '@siga/context/authProvider';
 import { View, StyleSheet } from 'react-native';
 
@@ -13,6 +14,7 @@ export default function SettingsScreen() {
       <View style={styles.body}>
         <CustomText style={styles.title}>Pantalla de ajustes</CustomText>
         <Button title="Cerrar sesión" style={styles.button} onPress={logout} />
+        <PersistentSwitch />
       </View>
     </Container>
   );

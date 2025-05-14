@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "reset-metro-cache": "watchman watch-del-all && rm -rf /tmp/metro-*",
+    "clean-all": "watchman watch-del-all && rm -rf /tmp/metro-* android/app/build node_modules && yarn install",
+    "build-debug-apk": "cd android && ./gradlew assembleDebug",
+    "android": "watchman watch-del-all && rm -rf /tmp/metro-* && react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
