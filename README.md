@@ -120,6 +120,8 @@ For a complete list, see [package.json](./package.json).
 - Explicación de como cambiar tamaño de imagen, pasarle y analizarlo con un modelo de [Tensor](https://github.com/mrousavy/react-native-fast-tflite/issues/15#issuecomment-1898049628)
 
 
+- Ejemplo con tensor en html [Tensor.js](https://www.youtube.com/watch?v=yBgXx0FLYKc)
+
 
 
 ## License

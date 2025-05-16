@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import CameraView from '@siga/components/CameraView';
 import Header from '@siga/components/Header';
-import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useCaptureStore } from '@siga/store/capture';
 import { useTheme } from '@siga/context/themeProvider';
@@ -11,7 +10,6 @@ import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
 import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
-import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
 import { useAuth } from '@siga/context/authProvider';
 import { CameraPosition } from 'react-native-vision-camera';
@@ -55,26 +53,8 @@ export default function CaptureScreen() {
     const clearResult = useCaptureStore((state) => state.clearResult);
     const { getLocation } = useLocation();
 
-    const { model } = useEfficientDetModel();
-
-    /*const extractFile = async (imagePath: string) => {
-        const response = await fetch(`file://${imagePath}`);
-        const imageData = await response.arrayBuffer();
-        return new Uint8Array(imageData);
-    };*/
-
-    const generateFaceNet = async (path: string): Promise<TypeArray> => {
-        const imageResource = await fetch(path);
-        const blob = await imageResource.blob();
-        const arrayBuffer = getArrayBufferForBlob(blob);
-        const detector = await model?.run([arrayBuffer]);
-        return detector!![0];
-
-    };
-
-    const validateUserFace = async (cropPath: string, coords: CoordsProps) => {
-        const detector = await generateFaceNet(`file://${cropPath}`);
-        const vectorRequest: number[] = Object.values(detector);
+    const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
+        const vectorRequest: number[] = Object.values(vector);
         const { message, success } = await validateFaceService({
             empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
@@ -84,10 +64,9 @@ export default function CaptureScreen() {
         setResult(success, message);
     };
 
-    const registerUserFace = async (originalPath: string, cropPath: string, id: string) => {
+    const registerUserFace = async (originalPath: string, vector: TypeArray, id: string) => {
+        const vectorRequest: number[] = Object.values(vector);
         const base64 = await fetchImageToB64(`file://${originalPath}`);
-        const detector = await generateFaceNet(`file://${cropPath}`);
-        const vectorRequest: number[] = Object.values(detector);
         const { message, success } = await registerFaceService({
             empleadoIdLogged: user?.idEmpleado,
             photo: base64,
@@ -97,7 +76,7 @@ export default function CaptureScreen() {
         setResult(success, message);
     };
 
-    const handleCapture = async (originalPath: string, cropPath: string) => {
+    const handleCapture = async (originalPath: string, vector: TypeArray) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
         setIsLoading(true);
@@ -121,9 +100,9 @@ export default function CaptureScreen() {
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(originalPath, cropPath, id);
+                await registerUserFace(originalPath, vector, id);
             } else if (mode === 'validate') {
-                await validateUserFace(cropPath, location);
+                await validateUserFace(vector, location);
             } else {
                 showToast(`Modo desconocido: ${mode} o undefined`);
             }
@@ -148,7 +127,7 @@ export default function CaptureScreen() {
                     <ActivityIndicator color={colors.primary} size="large" />
                 </View>
                 : null}
-            {model && !isLoading ?
+            {!isLoading ?
                 <CameraView
                     position={cameraType}
                     onCapture={handleCapture}

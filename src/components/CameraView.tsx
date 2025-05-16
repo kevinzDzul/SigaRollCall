@@ -6,15 +6,15 @@ import {
   Face,
   useFaceDetector,
   FaceDetectionOptions,
-  Bounds,
 } from 'react-native-vision-camera-face-detector';
 import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
-import ImageEditor from '@react-native-community/image-editor';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
+import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 
 interface Props {
   position?: CameraPosition;
-  onCapture: (originalPath: string, cropPath: string) => void;
+  onCapture: (originalPath: string, resizedFrameData: Float32Array) => void;
   showCircleFace?: boolean;
 }
 
@@ -22,6 +22,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
   const camera = useRef<Camera>(null);
+  const { resize } = useResizePlugin();
   const device = useCameraDevice(position);
   const format = useCameraFormat(device, [{ fps: 15, iso: 'min' }]);
   const theme = useTheme();
@@ -32,6 +33,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
 
+  const { model } = useEfficientDetModel();
+
+  const vectorData = useSharedValue<any>([]);
   const prevEyeClosedData = useSharedValue<boolean | undefined>(undefined);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
@@ -49,19 +53,11 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     })();
   }, []);
 
-  const takePhoto = async (bounds: Bounds) => {
-    if (camera.current && hasFace && !done) {
+  const takePhoto = async () => {
+    if (camera.current && hasFace && vectorData.value && !done) {
       try {
         const photo = await camera.current.takeSnapshot();
-
-        const croppedUri = await ImageEditor.cropImage(`file://${photo.path}`, {
-          offset: { x: bounds.x, y: bounds.y },
-          size: { width: bounds.width, height: bounds.height },
-          displaySize: { width: 160, height: 160 },
-          resizeMode: 'contain',
-        });
-
-        onCapture(photo.path, croppedUri.path);
+        onCapture(photo.path, vectorData.value);
         setMessage('Foto tomada exitosamente');
         setDone(true);
       } catch (error) {
@@ -82,7 +78,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     }
 
     setHasFace(true);
-    setMessage(`Parpadeos: ${blinkCount}/3`);
+    setMessage(`Parpadeos: ${blinkCount}/2`);
 
     const face = faces[0];
     const leftOpen = face.leftEyeOpenProbability ?? 1;
@@ -95,9 +91,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
       prevEyeClosedData.value = false;
       const nextCount = blinkCount + 1;
       setBlinkCount(nextCount);
-      setMessage(`Parpadeos: ${nextCount}/3`);
-      if (nextCount >= 3) {
-        takePhoto(face.bounds);
+      setMessage(`Parpadeos: ${nextCount}/2`);
+      if (nextCount >= 2) {
+        takePhoto();
       }
     }
   });
@@ -106,6 +102,24 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     'worklet';
     const faces = detectFaces(frame);
     handleFrame(faces);
+
+    if (!model || model == null || faces.length <= 0) { return; }
+
+    const raw = resize(frame, {
+      scale: { width: 160, height: 160 },
+      crop: {
+        x: faces[0].bounds.y,
+        y: faces[0].bounds.x,
+        width: faces[0].bounds.width,
+        height: faces[0].bounds.height,
+      },
+      rotation: '270deg',
+      pixelFormat: 'rgb',
+      dataType: 'float32',
+    });
+
+    const detector = model?.runSync([raw]);
+    vectorData.value = detector[0];
 
   }, [handleFrame]);
 
