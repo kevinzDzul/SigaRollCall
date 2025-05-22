@@ -50,7 +50,7 @@ const logError = (error: any) => {
 // 🎛️ Instancia tipada
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: Config.API_URL,
-  timeout: 10000,
+  timeout: 30000,
 });
 
 // 🎣 Interceptores
