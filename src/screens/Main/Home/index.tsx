@@ -13,6 +13,7 @@ import { useLocation } from '@siga/hooks/useLocation';
 import { CustomText } from '@siga/components/CustomText';
 import TipCard from './components/TipsCard';
 import { useTheme } from '@siga/context/themeProvider';
+import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -24,6 +25,7 @@ export default function FacialRecognitionScreen() {
   const message = useCaptureStore((state) => state.error);
   const clearResult = useCaptureStore((state) => state.clearResult);
   const { checkAndRequestPermission } = useLocation();
+  const { validateGeolocation } = useValidateGeolocation();
 
   useEffect(() => {
     checkAndRequestPermission();
@@ -35,6 +37,13 @@ export default function FacialRecognitionScreen() {
       clearResult();
     }
   }, [message, showToast, clearResult]);
+
+  const handleValidateFace = async () => {
+    const ok = await validateGeolocation();
+    if (ok) {
+      navigation.navigate('CaptureScreen', { mode: 'validate' })
+    }
+  };
 
   return (
     <Container >
@@ -55,7 +64,7 @@ export default function FacialRecognitionScreen() {
       <Button
         style={styles.button}
         title="🔍 Validar Rostro"
-        onPress={() => navigation.navigate('CaptureScreen', { mode: 'validate' })}
+        onPress={() => handleValidateFace()}
       />
     </Container>
   );

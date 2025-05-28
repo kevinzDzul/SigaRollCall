@@ -9,6 +9,7 @@ import UserCard from '@siga/components/UserCard';
 import { useTheme } from '@siga/context/themeProvider';
 import { useToastTop } from '@siga/context/toastProvider';
 import { useDebounce } from '@siga/hooks/useDebounce';
+import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 import { RootStackParamList } from '@siga/screens/Capture';
 import React, { useEffect, useState } from 'react';
 import {
@@ -25,6 +26,7 @@ export default function CheckListScreen() {
     const navigation = useNavigation<NavigationProp>();
     const [query, setQuery] = useState('');
     const debouncedQuery = useDebounce(query, 500);
+    const { validateGeolocation } = useValidateGeolocation();
 
     const [filteredData, setFilteredData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(false);
@@ -59,7 +61,10 @@ export default function CheckListScreen() {
     }, [debouncedQuery, showToast]);
 
 
-    const handleItem = (item: Employee) => {
+    const handleItem = async (item: Employee) => {
+        const isActiveLocation = await validateGeolocation();
+        if(!isActiveLocation) return;
+
         if (item?.faceCompleted) {
             item?.message && showToast(item?.message);
             return;
