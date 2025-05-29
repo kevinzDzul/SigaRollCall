@@ -22,7 +22,7 @@ export function useValidateGeolocation() {
       let isEnabled = true;
       await new Promise<void>((resolve) => {
         const options: GeolocationOptions = {
-          enableHighAccuracy: true,
+          enableHighAccuracy: false,
           timeout: 5000,
           maximumAge: 1000,
         };
