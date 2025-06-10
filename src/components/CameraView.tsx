@@ -1,4 +1,10 @@
-import { Camera, CameraPosition, useCameraDevice, useCameraFormat, useFrameProcessor } from 'react-native-vision-camera';
+import {
+  Camera,
+  CameraPosition,
+  useCameraDevice,
+  useCameraFormat,
+  useFrameProcessor,
+} from 'react-native-vision-camera';
 import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { useTheme } from '@siga/context/themeProvider';
@@ -28,15 +34,14 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const theme = useTheme();
 
   const [hasPermission, setHasPermission] = useState(false);
-  const [hasFace, setHasFace] = useState(false);
-  const [blinkCount, setBlinkCount] = useState(0);
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
 
-  const { model } = useEfficientDetModel();
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isCounting = useRef(false);
 
+  const { model } = useEfficientDetModel();
   const vectorData = useSharedValue<any>([]);
-  const prevEyeClosedData = useSharedValue<boolean | undefined>(undefined);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     performanceMode: 'fast',
@@ -54,47 +59,47 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   }, []);
 
   const takePhoto = async () => {
-    if (camera.current && hasFace && vectorData.value && !done) {
+    if (camera.current && vectorData.value && !done) {
       try {
         const photo = await camera.current.takeSnapshot();
         onCapture(photo.path, vectorData.value);
         setMessage('Foto tomada exitosamente');
         setDone(true);
+        isCounting.current = false;
       } catch (error) {
         reportError(error);
       }
     }
   };
 
-  const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) { return; }
+  const startCountdown = () => {
+    if (isCounting.current) return;
 
-    if (faces.length === 0) {
-      setHasFace(false);
-      prevEyeClosedData.value = false;
-      setBlinkCount(0);
-      setMessage('Se necesita rostro');
-      return;
-    }
+    isCounting.current = true;
+    let seconds = 5;
+    setMessage(`Foto en ${seconds}...`);
 
-    setHasFace(true);
-    setMessage(`Parpadeos: ${blinkCount}/2`);
+    countdownRef.current = setInterval(() => {
+      seconds--;
+      setMessage(`Foto en ${seconds}...`);
 
-    const face = faces[0];
-    const leftOpen = face.leftEyeOpenProbability ?? 1;
-    const rightOpen = face.rightEyeOpenProbability ?? 1;
-    const closed = leftOpen < 0.4 || rightOpen < 0.4;
-
-    if (!prevEyeClosedData.value && closed) {
-      prevEyeClosedData.value = true;
-    } else if (prevEyeClosedData.value && !closed) {
-      prevEyeClosedData.value = false;
-      const nextCount = blinkCount + 1;
-      setBlinkCount(nextCount);
-      setMessage(`Parpadeos: ${nextCount}/2`);
-      if (nextCount >= 2) {
-        takePhoto();
+      if (seconds === 0) {
+        clearInterval(countdownRef.current!);
+        countdownRef.current = null;
+        takePhoto(); // ✅ ya no se valida si hay rostro
       }
+    }, 1000);
+  };
+
+  const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
+    if (done) return;
+
+    const detected = faces.length > 0;
+
+    if (detected && !isCounting.current) {
+      startCountdown();
+    } else if (!detected && !isCounting.current) {
+      setMessage('Buscando rostro...');
     }
   });
 
@@ -103,7 +108,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     const faces = detectFaces(frame);
     handleFrame(faces);
 
-    if (!model || model == null || faces.length <= 0) { return; }
+    if (!model || faces.length === 0) return;
 
     const raw = resize(frame, {
       scale: { width: 160, height: 160 },
@@ -118,12 +123,19 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
       dataType: 'float32',
     });
 
-    const detector = model?.runSync([raw]);
+    const detector = model.runSync([raw]);
     vectorData.value = detector[0];
-
   }, [handleFrame]);
 
-  if (!device || !hasPermission) { return null; }
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, []);
+
+  if (!device || !hasPermission) return null;
 
   return (
     <View style={styles.container}>
@@ -134,7 +146,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
         isActive={!done}
         frameProcessor={frameProcessor}
         pixelFormat="yuv"
-        focusable={true}
+        focusable
         isMirrored={false}
         outputOrientation="device"
         format={format}
@@ -143,7 +155,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
       {showCircleFace && !done && <View style={styles.circleOverlay} />}
 
       <View style={styles.messageContainer}>
-        <Text style={[styles.messageText, { color: theme.colors.onPrimary }]}> {message} </Text>
+        <Text style={[styles.messageText, { color: theme.colors.onPrimary }]}>
+          {message}
+        </Text>
       </View>
     </View>
   );
