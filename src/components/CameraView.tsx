@@ -1,6 +1,7 @@
 import {
   Camera,
   CameraPosition,
+  runAtTargetFps,
   useCameraDevice,
   useCameraFormat,
   useFrameProcessor,
@@ -17,6 +18,7 @@ import { useSharedValue, Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
+import { useIsFocused } from '@react-navigation/native';
 
 interface Props {
   position?: CameraPosition;
@@ -27,10 +29,11 @@ interface Props {
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
+  const isFocused = useIsFocused();
   const camera = useRef<Camera>(null);
   const { resize } = useResizePlugin();
   const device = useCameraDevice(position);
-  const format = useCameraFormat(device, [{ fps: 15, iso: 'min' }]);
+  const format = useCameraFormat(device, []);
   const theme = useTheme();
 
   const [hasPermission, setHasPermission] = useState(false);
@@ -44,8 +47,6 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const vectorData = useSharedValue<any>([]);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    performanceMode: 'fast',
-    classificationMode: 'all',
     windowWidth: SCREEN_W,
     windowHeight: SCREEN_H,
   }).current;
@@ -105,26 +106,30 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
-    const faces = detectFaces(frame);
-    handleFrame(faces);
 
-    if (!model || faces.length === 0) return;
+    runAtTargetFps(1, async () => {
 
-    const raw = resize(frame, {
-      scale: { width: 160, height: 160 },
-      crop: {
-        x: faces[0].bounds.y,
-        y: faces[0].bounds.x,
-        width: faces[0].bounds.width,
-        height: faces[0].bounds.height,
-      },
-      rotation: '270deg',
-      pixelFormat: 'rgb',
-      dataType: 'float32',
+      const faces = detectFaces(frame);
+      handleFrame(faces);
+
+      if (!model || faces.length === 0) return;
+
+      const raw = resize(frame, {
+        scale: { width: 160, height: 160 },
+        crop: {
+          x: faces[0].bounds.y,
+          y: faces[0].bounds.x,
+          width: faces[0].bounds.width,
+          height: faces[0].bounds.height,
+        },
+        rotation: '270deg',
+        pixelFormat: 'rgb',
+        dataType: 'float32',
+      });
+
+      const detector = model.runSync([raw]);
+      vectorData.value = detector[0];
     });
-
-    const detector = model.runSync([raw]);
-    vectorData.value = detector[0];
   }, [handleFrame]);
 
   useEffect(() => {
@@ -135,7 +140,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     };
   }, []);
 
-  if (!device || !hasPermission) return null;
+  if (!isFocused || !device || !hasPermission) return null;
 
   return (
     <View style={styles.container}>
