@@ -62,18 +62,17 @@ export default function CaptureScreen() {
     };
 
     const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
-        await processImage(`file://${originalPath}`);
+        const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await validateFaceService({
             empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
             lng: coords?.longitude,
-            faceToken: JSON.stringify([]),
+            photo: base64,
         });
         setResult(success, message);
     };
 
     const registerUserFace = async (originalPath: string, id: string) => {
-        await processImage(`file://${originalPath}`);
         const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await registerFaceService({
             empleadoIdLogged: user?.idEmpleado,

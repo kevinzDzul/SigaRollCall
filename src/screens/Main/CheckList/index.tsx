@@ -26,7 +26,7 @@ export default function CheckListScreen() {
     const navigation = useNavigation<NavigationProp>();
     const [query, setQuery] = useState('');
     const debouncedQuery = useDebounce(query, 500);
-    const { validateGeolocation } = useValidateGeolocation();
+    const { validateGeolocation, loading: isLoadingValidation } = useValidateGeolocation();
 
     const [filteredData, setFilteredData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(false);
@@ -62,19 +62,21 @@ export default function CheckListScreen() {
 
 
     const handleItem = async (item: Employee) => {
+        if (isLoadingValidation) { return; }
         const isActiveLocation = await validateGeolocation();
-        if(!isActiveLocation) return;
+        if (!isActiveLocation) { return; }
 
         if (item?.faceCompleted) {
             item?.message && showToast(item?.message);
             return;
         }
-
         navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' });
     };
 
     const renderItem = (item: Employee) => (
         <UserCard
+            key={item.id}
+            disabled={isLoadingValidation}
             name={`${item.firstName} ${item.lastName}`}
             username={item.username}
             isFaceCompleted={item.faceCompleted}

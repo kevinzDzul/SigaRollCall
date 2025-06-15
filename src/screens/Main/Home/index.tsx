@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import Container from '@siga/components/Container';
@@ -14,12 +14,15 @@ import { CustomText } from '@siga/components/CustomText';
 import TipCard from './components/TipsCard';
 import { useTheme } from '@siga/context/themeProvider';
 import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
+import { useIsMounted } from '@siga/hooks/useIsMounted';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function FacialRecognitionScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<NavigationProp>();
+  const [isLoadingPermission, setIsLoadingPermission] = useState<boolean>(false);
+  const isMounted = useIsMounted();
 
   const showToast = useToastTop();
   const message = useCaptureStore((state) => state.error);
@@ -39,10 +42,12 @@ export default function FacialRecognitionScreen() {
   }, [message, showToast, clearResult]);
 
   const handleValidateFace = async () => {
+    setIsLoadingPermission(true);
     const ok = await validateGeolocation();
     if (ok) {
-      navigation.navigate('CaptureScreen', { mode: 'validate' })
+      navigation.navigate('CaptureScreen', { mode: 'validate' });
     }
+    isMounted && setIsLoadingPermission(false);
   };
 
   return (
@@ -62,6 +67,7 @@ export default function FacialRecognitionScreen() {
         </View>
       </View>
       <Button
+        isLoading={isLoadingPermission}
         style={styles.button}
         title="🔍 Validar Rostro"
         onPress={() => handleValidateFace()}
