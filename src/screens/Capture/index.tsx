@@ -58,18 +58,17 @@ export default function CaptureScreen() {
         loadSwitchValue();
     }, []);
 
-
-
     const processImage = async (imageUri: string) => {
         const bounds = await detectFace(imageUri);
         const faceUri = await cropFace(imageUri, bounds);
-        const inputTensor = await prepareInputTensor(faceUri.path); // shape: [1,112*112*3]
+        const inputTensor = await prepareInputTensor(faceUri.uri); // shape:
         const output = await model?.run(inputTensor); // Esto depende del modelo, usualmente devuelve un array de floats
-        console.log(output);
+        const vectorRequest: number[] = Object.values(output!![0]);
+        console.log(vectorRequest.join(','));
     };
 
     const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
-        await processImage(originalPath);
+        await processImage(`file://${originalPath}`);
         const { message, success } = await validateFaceService({
             empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
@@ -80,7 +79,7 @@ export default function CaptureScreen() {
     };
 
     const registerUserFace = async (originalPath: string, id: string) => {
-        await processImage(originalPath);
+        await processImage(`file://${originalPath}`);
         const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await registerFaceService({
             empleadoIdLogged: user?.idEmpleado,
@@ -130,7 +129,6 @@ export default function CaptureScreen() {
             goBack();/// TODO -  hay un warning, resolverlo, deberia hacer un navigate.
         }
     };
-
 
     return (
         <View style={styles.container}>

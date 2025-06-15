@@ -4,7 +4,7 @@ import { useResizePlugin } from 'vision-camera-resize-plugin';
 
 const useEfficientDetModel = () => {
   // Carga y estado del modelo TFLite
-  const modelHook = useTensorflowModel(require('../assets/facenet_512.tflite'));
+  const modelHook = useTensorflowModel(require('../assets/mobilenet_v1.tflite'));
   const actualModel = modelHook.state === 'loaded' ? modelHook.model : undefined;
 
   // Plugin de redimensionamiento
