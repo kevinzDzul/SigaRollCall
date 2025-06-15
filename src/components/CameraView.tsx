@@ -25,6 +25,8 @@ interface Props {
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const MIN_BOUNDS = { height: 800, width: 800 };
+const MAX_BOUNDS = { height: 1100, width: 1000 };
 
 export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
   const isFocused = useIsFocused();
@@ -36,6 +38,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const [hasPermission, setHasPermission] = useState(false);
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
+
+  // Estados nuevos
+  const [isCentered, setIsCentered] = useState(false);
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCounting = useRef(false);
@@ -68,7 +73,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const startCountdown = () => {
-    if (isCounting.current) {return;}
+    if (isCounting.current) { return; }
 
     isCounting.current = true;
     let seconds = 5;
@@ -86,15 +91,51 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     }, 1000);
   };
 
+  const isFacingForward = (face: Face, yawThreshold = 10, pitchThreshold = 15) => {
+    return (
+      Math.abs(face.yawAngle) < yawThreshold &&
+      Math.abs(face.pitchAngle) < pitchThreshold
+    );
+  };
+
+  const isFaceCentered = (bounds: Face['bounds']) => {
+    return (
+      bounds.width >= MIN_BOUNDS.width &&
+      bounds.width <= MAX_BOUNDS.width &&
+      bounds.height >= MIN_BOUNDS.height &&
+      bounds.height <= MAX_BOUNDS.height
+    );
+  };
+
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) {return;}
+    if (done) { return; }
 
-    const detected = faces.length > 0;
+    const detectedNow = faces.length > 0;
 
-    if (detected && !isCounting.current) {
+    if (!detectedNow) {
+      setIsCentered(false);
+      if (!isCounting.current) {setMessage('Buscando rostro...');}
+      return;
+    }
+
+    const face = faces[0];
+    const facingNow = isFacingForward(face);
+    const centeredNow = isFaceCentered(face.bounds);
+    setIsCentered(centeredNow);
+
+    if (detectedNow && facingNow && !centeredNow && !isCounting.current) {
+      setMessage('Acerca tu rostro al círculo');
+      return;
+    }
+
+    if (detectedNow && facingNow && centeredNow && !isCounting.current) {
       startCountdown();
-    } else if (!detected && !isCounting.current) {
-      setMessage('Buscando rostro...');
+      return;
+    }
+
+    if (detectedNow && !isCounting.current && !centeredNow) {
+      setMessage('Centra tu rostro en el círculo');
+      return;
     }
   });
 
@@ -115,7 +156,8 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     };
   }, []);
 
-  if (!isFocused || !device || !hasPermission) {return null;}
+  if (!isFocused || !device || !hasPermission) { return null; }
+  const circleColor = isCentered ? 'limegreen' : 'white';
 
   return (
     <View style={styles.container}>
@@ -132,7 +174,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
         format={format}
       />
 
-      {showCircleFace && !done && <View style={styles.circleOverlay} />}
+      {showCircleFace && !done && (
+        <View style={[styles.circleOverlay, { borderColor: circleColor }]} />
+      )}
 
       <View style={styles.messageContainer}>
         <Text style={[styles.messageText, { color: theme.colors.onPrimary }]}>
@@ -148,14 +192,14 @@ const styles = StyleSheet.create({
   camera: { flex: 1 },
   circleOverlay: {
     position: 'absolute',
-    borderStyle: 'dashed',
+    borderStyle: 'solid',
     top: SCREEN_H / 2 - 240,
     left: SCREEN_W / 2 - 140,
     width: 280,
     height: 400,
     borderRadius: 200,
     borderWidth: 3,
-    borderColor: 'white',
+    // borderColor: (dinámico en JSX)
     backgroundColor: 'transparent',
     zIndex: 10,
   },

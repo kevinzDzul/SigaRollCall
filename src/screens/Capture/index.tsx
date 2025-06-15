@@ -17,8 +17,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY } from '@siga/components/SwitchCamera';
 import { detectFace } from '@siga/util/faceDetection';
 import { cropFace } from '@siga/util/cropFrace';
-import { prepareInputTensor } from '@siga/util/prepareInputTensor';
-import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -38,7 +36,6 @@ export default function CaptureScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [cameraType, setCameraType] = useState<CameraPosition>('front');
 
-    const { model } = useEfficientDetModel();
     const setResult = useCaptureStore((state) => state.setResult);
     const clearResult = useCaptureStore((state) => state.clearResult);
     const { getLocation } = useLocation();
@@ -61,10 +58,7 @@ export default function CaptureScreen() {
     const processImage = async (imageUri: string) => {
         const bounds = await detectFace(imageUri);
         const faceUri = await cropFace(imageUri, bounds);
-        const inputTensor = await prepareInputTensor(faceUri.uri); // shape:
-        const output = await model?.run(inputTensor); // Esto depende del modelo, usualmente devuelve un array de floats
-        const vectorRequest: number[] = Object.values(output!![0]);
-        console.log(vectorRequest.join(','));
+        console.log(faceUri);
     };
 
     const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
