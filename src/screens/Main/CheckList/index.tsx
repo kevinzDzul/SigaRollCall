@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Employee, SearchUsersParams, searchUsersService } from '@siga/api/searchUsersService';
 import Container from '@siga/components/Container';
@@ -11,11 +11,12 @@ import { useToastTop } from '@siga/context/toastProvider';
 import { useDebounce } from '@siga/hooks/useDebounce';
 import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 import { RootStackParamList } from '@siga/screens/Capture';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     FlatList,
     StyleSheet,
+    Keyboard,
 } from 'react-native';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
@@ -30,6 +31,36 @@ export default function CheckListScreen() {
 
     const [filteredData, setFilteredData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(false);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            // La función de limpieza se ejecuta cuando la pantalla pierde el foco (blur).
+            return () => {
+                setQuery('');
+                setFilteredData([]);
+            };
+        }, [])
+    );
+
+        const keyboardDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (keyboardDismissTimer.current) {
+            clearTimeout(keyboardDismissTimer.current);
+        }
+
+        if (query) {
+            keyboardDismissTimer.current = setTimeout(() => {
+                Keyboard.dismiss();
+            }, 4000); // 4 segundos
+        }
+
+        return () => {
+            if (keyboardDismissTimer.current) {
+                clearTimeout(keyboardDismissTimer.current);
+            }
+        };
+    }, [query]);
 
     useEffect(() => {
         if (!debouncedQuery.trim()) {
