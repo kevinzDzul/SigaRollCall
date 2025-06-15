@@ -7,7 +7,7 @@ import { useCaptureStore } from '@siga/store/capture';
 import { useTheme } from '@siga/context/themeProvider';
 import { useToastTop } from '@siga/context/toastProvider';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
-import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
+import { registerFaceService } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
@@ -15,6 +15,10 @@ import { useAuth } from '@siga/context/authProvider';
 import { CameraPosition } from 'react-native-vision-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY } from '@siga/components/SwitchCamera';
+import { detectFace } from '@siga/util/faceDetection';
+import { cropFace } from '@siga/util/cropFrace';
+import { prepareInputTensor } from '@siga/util/prepareInputTensor';
+import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -34,6 +38,11 @@ export default function CaptureScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [cameraType, setCameraType] = useState<CameraPosition>('front');
 
+    const { model } = useEfficientDetModel();
+    const setResult = useCaptureStore((state) => state.setResult);
+    const clearResult = useCaptureStore((state) => state.clearResult);
+    const { getLocation } = useLocation();
+
     useEffect(() => {
         // Cargar el valor guardado al iniciar
         const loadSwitchValue = async () => {
@@ -49,34 +58,40 @@ export default function CaptureScreen() {
         loadSwitchValue();
     }, []);
 
-    const setResult = useCaptureStore((state) => state.setResult);
-    const clearResult = useCaptureStore((state) => state.clearResult);
-    const { getLocation } = useLocation();
 
-    const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
-        const vectorRequest: number[] = Object.values(vector);
+
+    const processImage = async (imageUri: string) => {
+        const bounds = await detectFace(imageUri);
+        const faceUri = await cropFace(imageUri, bounds);
+        const inputTensor = await prepareInputTensor(faceUri.path); // shape: [1,112*112*3]
+        const output = await model?.run(inputTensor); // Esto depende del modelo, usualmente devuelve un array de floats
+        console.log(output);
+    };
+
+    const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
+        await processImage(originalPath);
         const { message, success } = await validateFaceService({
             empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
             lng: coords?.longitude,
-            faceToken: JSON.stringify(vectorRequest),
+            faceToken: JSON.stringify([]),
         });
         setResult(success, message);
     };
 
-    const registerUserFace = async (originalPath: string, vector: TypeArray, id: string) => {
-        const vectorRequest: number[] = Object.values(vector);
+    const registerUserFace = async (originalPath: string, id: string) => {
+        await processImage(originalPath);
         const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await registerFaceService({
             empleadoIdLogged: user?.idEmpleado,
             photo: base64,
             idEmpleado: id,
-            vectorFace: JSON.stringify(vectorRequest),
+            vectorFace: JSON.stringify([]),
         });
         setResult(success, message);
     };
 
-    const handleCapture = async (originalPath: string, vector: TypeArray) => {
+    const handleCapture = async (originalPath: string) => {
         const mode = route?.params?.mode;
         const id = route?.params?.id;
         setIsLoading(true);
@@ -100,9 +115,9 @@ export default function CaptureScreen() {
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(originalPath, vector, id);
+                await registerUserFace(originalPath, id);
             } else if (mode === 'validate') {
-                await validateUserFace(vector, location);
+                await validateUserFace(originalPath, location);
             } else {
                 showToast(`Modo desconocido: ${mode} o undefined`);
             }

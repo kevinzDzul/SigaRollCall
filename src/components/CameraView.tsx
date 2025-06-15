@@ -14,15 +14,13 @@ import {
   useFaceDetector,
   FaceDetectionOptions,
 } from 'react-native-vision-camera-face-detector';
-import { useSharedValue, Worklets } from 'react-native-worklets-core';
+import { Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
-import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { useIsFocused } from '@react-navigation/native';
 
 interface Props {
   position?: CameraPosition;
-  onCapture: (originalPath: string, resizedFrameData: Float32Array) => void;
+  onCapture: (originalPath: string) => void;
   showCircleFace?: boolean;
 }
 
@@ -31,7 +29,6 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
   const isFocused = useIsFocused();
   const camera = useRef<Camera>(null);
-  const { resize } = useResizePlugin();
   const device = useCameraDevice(position);
   const format = useCameraFormat(device, []);
   const theme = useTheme();
@@ -42,9 +39,6 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCounting = useRef(false);
-
-  const { model } = useEfficientDetModel();
-  const vectorData = useSharedValue<any>([]);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     windowWidth: SCREEN_W,
@@ -60,10 +54,10 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   }, []);
 
   const takePhoto = async () => {
-    if (camera.current && vectorData.value && !done) {
+    if (camera.current && !done) {
       try {
         const photo = await camera.current.takeSnapshot();
-        onCapture(photo.path, vectorData.value);
+        onCapture(photo.path);
         setMessage('Foto tomada exitosamente');
         setDone(true);
         isCounting.current = false;
@@ -74,7 +68,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const startCountdown = () => {
-    if (isCounting.current) return;
+    if (isCounting.current) {return;}
 
     isCounting.current = true;
     let seconds = 5;
@@ -93,7 +87,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) return;
+    if (done) {return;}
 
     const detected = faces.length > 0;
 
@@ -108,27 +102,8 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     'worklet';
 
     runAtTargetFps(1, async () => {
-
       const faces = detectFaces(frame);
       handleFrame(faces);
-
-      if (!model || faces.length === 0) return;
-
-      const raw = resize(frame, {
-        scale: { width: 160, height: 160 },
-        crop: {
-          x: faces[0].bounds.y,
-          y: faces[0].bounds.x,
-          width: faces[0].bounds.width,
-          height: faces[0].bounds.height,
-        },
-        rotation: '270deg',
-        pixelFormat: 'rgb',
-        dataType: 'float32',
-      });
-
-      const detector = model.runSync([raw]);
-      vectorData.value = detector[0];
     });
   }, [handleFrame]);
 
@@ -140,7 +115,7 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     };
   }, []);
 
-  if (!isFocused || !device || !hasPermission) return null;
+  if (!isFocused || !device || !hasPermission) {return null;}
 
   return (
     <View style={styles.container}>
