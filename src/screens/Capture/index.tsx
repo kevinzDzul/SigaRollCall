@@ -15,8 +15,6 @@ import { useAuth } from '@siga/context/authProvider';
 import { CameraPosition } from 'react-native-vision-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY } from '@siga/components/SwitchCamera';
-import { detectFace } from '@siga/util/faceDetection';
-import { cropFace } from '@siga/util/cropFrace';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -41,7 +39,6 @@ export default function CaptureScreen() {
     const { getLocation } = useLocation();
 
     useEffect(() => {
-        // Cargar el valor guardado al iniciar
         const loadSwitchValue = async () => {
             try {
                 const savedValue = await AsyncStorage.getItem(STORAGE_KEY);
@@ -54,12 +51,6 @@ export default function CaptureScreen() {
         };
         loadSwitchValue();
     }, []);
-
-    const processImage = async (imageUri: string) => {
-        const bounds = await detectFace(imageUri);
-        const faceUri = await cropFace(imageUri, bounds);
-        console.log(faceUri);
-    };
 
     const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
         const base64 = await fetchImageToB64(`file://${originalPath}`);
@@ -78,15 +69,14 @@ export default function CaptureScreen() {
             empleadoIdLogged: user?.idEmpleado,
             photo: base64,
             idEmpleado: id,
-            vectorFace: JSON.stringify([]),
         });
         setResult(success, message);
     };
 
     const handleCapture = async (originalPath: string) => {
+        setIsLoading(true);
         const mode = route?.params?.mode;
         const id = route?.params?.id;
-        setIsLoading(true);
 
         const location = await getLocation();
 
