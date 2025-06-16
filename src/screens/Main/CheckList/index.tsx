@@ -32,17 +32,9 @@ export default function CheckListScreen() {
     const [filteredData, setFilteredData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(false);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            // La función de limpieza se ejecuta cuando la pantalla pierde el foco (blur).
-            return () => {
-                setQuery('');
-                setFilteredData([]);
-            };
-        }, [])
-    );
 
-        const keyboardDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const keyboardDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (keyboardDismissTimer.current) {
@@ -52,7 +44,7 @@ export default function CheckListScreen() {
         if (query) {
             keyboardDismissTimer.current = setTimeout(() => {
                 Keyboard.dismiss();
-            }, 4000); // 4 segundos
+            }, 3000); // 3 segundos
         }
 
         return () => {
@@ -62,34 +54,36 @@ export default function CheckListScreen() {
         };
     }, [query]);
 
-    useEffect(() => {
-        if (!debouncedQuery.trim()) {
-            setFilteredData([]);
-            return;
-        }
-
-        let active = true;
-        setLoading(true);
-
-        const params: SearchUsersParams = { query: debouncedQuery };
-        searchUsersService(params).then((res) => {
-            if (active && res?.success) {
-                console.log(res.data);
-                const sorted = [...res.data].sort((a, b) => {
-                    return (b.faceCompleted ? 1 : 0) - (a.faceCompleted ? 1 : 0);
-                });
-                setFilteredData(sorted);
+    useFocusEffect(
+        React.useCallback(() => {
+            if (!debouncedQuery.trim()) {
+                setFilteredData([]);
+                return;
             }
-        }).catch((error) => {
-            console.warn('Error buscando usuarios:', error);
-            showToast(error.response?.data?.message ?? error?.message ?? 'Error buscando usuarios');
-            if (active) { setFilteredData([]); }
-        }).finally(() => active && setLoading(false));
 
-        return () => {
-            active = false;
-        };
-    }, [debouncedQuery, showToast]);
+            let active = true;
+            setLoading(true);
+
+            const params: SearchUsersParams = { query: debouncedQuery };
+            searchUsersService(params).then((res) => {
+                if (active && res?.success) {
+                    console.log(res.data);
+                    const sorted = [...res.data].sort((a, b) => {
+                        return (b.faceCompleted ? 1 : 0) - (a.faceCompleted ? 1 : 0);
+                    });
+                    setFilteredData(sorted);
+                }
+            }).catch((error) => {
+                console.warn('Error buscando usuarios:', error);
+                showToast(error.response?.data?.message ?? error?.message ?? 'Error buscando usuarios');
+                if (active) { setFilteredData([]); }
+            }).finally(() => active && setLoading(false));
+
+            return () => {
+                active = false;
+            };
+        }, [debouncedQuery, showToast])
+    );
 
 
     const handleItem = async (item: Employee) => {
@@ -132,7 +126,11 @@ export default function CheckListScreen() {
                     data={filteredData}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => renderItem(item)}
-                    ListEmptyComponent={<CustomText style={[styles.noResults]}>Sin resultados</CustomText>}
+                    ListEmptyComponent={
+                    <CustomText style={[styles.noResults]}>
+                        {query.trim().length ? 'Sin resultados' : '🔎 Realiza una busqueda'}
+                    </CustomText>
+                    }
                 />
             </View>
         </Container>
