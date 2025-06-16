@@ -58,6 +58,11 @@ export default function FacialRecognitionScreen() {
           <CustomText style={styles.emoji}>📸</CustomText>
         </View>
 
+        <View style={styles.infoContainer}>
+          <CustomText style={styles.infoText}>
+            🌟 Este módulo te permite registrar tu entrada y salida mediante reconocimiento facial.
+          </CustomText>
+        </View>
         <CustomText style={styles.title}>Reconocimiento Facial</CustomText>
         <CustomText style={styles.subtitle}>Coloca tu rostro frente a la cámara</CustomText>
 
@@ -110,5 +115,18 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 0,
+  },
+  infoContainer: {
+    backgroundColor: '#e3f2fd',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    width: '100%',
+  },
+  infoText: {
+    color: '#0d47a1',
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
