@@ -17,6 +17,13 @@ import {
 import { Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
 import { useIsFocused } from '@react-navigation/native';
+import {
+  Canvas,
+  Circle,
+  Path,
+  Skia,
+  PathOp,
+} from '@shopify/react-native-skia';
 
 interface Props {
   position?: CameraPosition;
@@ -28,7 +35,11 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const MIN_BOUNDS = { height: 800, width: 800 };
 const MAX_BOUNDS = { height: 1100, width: 1000 };
 
-export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
+export default function CameraView({
+  position = 'front',
+  onCapture,
+  showCircleFace,
+}: Props) {
   const isFocused = useIsFocused();
   const camera = useRef<Camera>(null);
   const device = useCameraDevice(position);
@@ -71,7 +82,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const startCountdown = () => {
-    if (isCounting.current) { return; }
+    if (isCounting.current) {
+      return;
+    }
 
     isCounting.current = true;
     let seconds = 5;
@@ -89,7 +102,11 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     }, 1000);
   };
 
-  const isFacingForward = (face: Face, yawThreshold = 10, pitchThreshold = 15) => {
+  const isFacingForward = (
+    face: Face,
+    yawThreshold = 10,
+    pitchThreshold = 15,
+  ) => {
     return (
       Math.abs(face.yawAngle) < yawThreshold &&
       Math.abs(face.pitchAngle) < pitchThreshold
@@ -106,11 +123,15 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) {return;}
+    if (done) {
+      return;
+    }
 
     if (faces.length === 0) {
       setIsCentered(false);
-      if (!isCounting.current) {setMessage('Buscando rostro...');}
+      if (!isCounting.current) {
+        setMessage('Buscando rostro...');
+      }
       return;
     }
 
@@ -135,14 +156,17 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     }
   });
 
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
+  const frameProcessor = useFrameProcessor(
+    (frame) => {
+      'worklet';
 
-    runAtTargetFps(1, async () => {
-      const faces = detectFaces(frame);
-      handleFrame(faces);
-    });
-  }, [handleFrame]);
+      runAtTargetFps(1, async () => {
+        const faces = detectFaces(frame);
+        handleFrame(faces);
+      });
+    },
+    [handleFrame],
+  );
 
   useEffect(() => {
     return () => {
@@ -152,8 +176,19 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     };
   }, []);
 
-  if (!isFocused || !device || !hasPermission) { return null; }
+  if (!isFocused || !device || !hasPermission) {
+    return null;
+  }
   const circleColor = isCentered ? 'limegreen' : 'white';
+  const CIRCLE_R = (SCREEN_W / 2) - 10;
+  const CIRCLE_CX = SCREEN_W / 2;
+  const CIRCLE_CY = SCREEN_H / 2;
+
+  const overlayPath = Skia.Path.Make();
+  overlayPath.addRect(Skia.XYWHRect(0, 0, SCREEN_W, SCREEN_H));
+  const circlePath = Skia.Path.Make();
+  circlePath.addCircle(CIRCLE_CX, CIRCLE_CY, CIRCLE_R);
+  overlayPath.op(circlePath, PathOp.Difference);
 
   return (
     <View style={styles.container}>
@@ -171,7 +206,17 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
       />
 
       {showCircleFace && !done && (
-        <View style={[styles.circleOverlay, { borderColor: circleColor }]} />
+        <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Path path={overlayPath} color="rgba(0, 0, 0, 0.5)" />
+          <Circle
+            cx={CIRCLE_CX}
+            cy={CIRCLE_CY}
+            r={CIRCLE_R}
+            style="stroke"
+            strokeWidth={3}
+            color={circleColor}
+          />
+        </Canvas>
       )}
 
       <View style={styles.messageContainer}>
@@ -186,19 +231,6 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
 const styles = StyleSheet.create({
   container: { flex: 1 },
   camera: { flex: 1 },
-  circleOverlay: {
-    position: 'absolute',
-    borderStyle: 'solid',
-    top: SCREEN_H / 2 - 240,
-    left: SCREEN_W / 2 - 140,
-    width: 280,
-    height: 400,
-    borderRadius: 200,
-    borderWidth: 3,
-    // borderColor: (dinámico en JSX)
-    backgroundColor: 'transparent',
-    zIndex: 10,
-  },
   messageContainer: {
     position: 'absolute',
     top: 50,
