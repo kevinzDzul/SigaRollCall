@@ -15,6 +15,7 @@ import { useAuth } from '@siga/context/authProvider';
 import { CameraPosition } from 'react-native-vision-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY } from '@siga/components/SwitchCamera';
+import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -36,6 +37,8 @@ export default function CaptureScreen() {
 
     const { setResult, clearResult } = useCaptureStore((state) => state);
     const { getLocation } = useLocation();
+
+    useUnmountBrightness(1);
 
     useEffect(() => {
         const loadSwitchValue = async () => {

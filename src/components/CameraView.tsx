@@ -38,8 +38,6 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const [hasPermission, setHasPermission] = useState(false);
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
-
-  // Estados nuevos
   const [isCentered, setIsCentered] = useState(false);
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -108,11 +106,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) { return; }
+    if (done) {return;}
 
-    const detectedNow = faces.length > 0;
-
-    if (!detectedNow) {
+    if (faces.length === 0) {
       setIsCentered(false);
       if (!isCounting.current) {setMessage('Buscando rostro...');}
       return;
@@ -123,18 +119,18 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     const centeredNow = isFaceCentered(face.bounds);
     setIsCentered(centeredNow);
 
-    if (detectedNow && facingNow && !centeredNow && !isCounting.current) {
-      setMessage('Acerca tu rostro al círculo');
+    if (!facingNow && !isCounting.current) {
+      setMessage('Mira hacia la camara');
       return;
     }
 
-    if (detectedNow && facingNow && centeredNow && !isCounting.current) {
-      startCountdown();
-      return;
-    }
-
-    if (detectedNow && !isCounting.current && !centeredNow) {
+    if (!centeredNow && !isCounting.current) {
       setMessage('Centra tu rostro en el círculo');
+      return;
+    }
+
+    if (facingNow && centeredNow && !isCounting.current) {
+      startCountdown();
       return;
     }
   });
