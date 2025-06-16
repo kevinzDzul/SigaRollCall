@@ -34,8 +34,7 @@ export default function CaptureScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [cameraType, setCameraType] = useState<CameraPosition>('front');
 
-    const setResult = useCaptureStore((state) => state.setResult);
-    const clearResult = useCaptureStore((state) => state.clearResult);
+    const { setResult, clearResult } = useCaptureStore((state) => state);
     const { getLocation } = useLocation();
 
     useEffect(() => {
@@ -81,17 +80,16 @@ export default function CaptureScreen() {
         const location = await getLocation();
 
         if (!location) {
-            showToast('Se requieren permisos de localización');
+            showToast('🔥 Se requieren permisos de localización');
             return;
         }
 
         if (!mode) {
-            showToast('Modo no especificado');
             return;
         }
 
         if (mode === 'register' && !id) {
-            showToast('Se requiere identificador');
+            showToast('🔥 Se requiere identificador del usuario, Intenta nuevamente');
             return;
         }
 
@@ -101,7 +99,7 @@ export default function CaptureScreen() {
             } else if (mode === 'validate') {
                 await validateUserFace(originalPath, location);
             } else {
-                showToast(`Modo desconocido: ${mode} o undefined`);
+                showToast(`🔥 Modo desconocido: ${mode} o undefined`);
             }
         } catch (error: any) {
             reportError(error);

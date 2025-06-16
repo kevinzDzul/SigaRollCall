@@ -8,13 +8,13 @@ import { useNavigation } from '@react-navigation/native';
 import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
 import { useCaptureStore } from '@siga/store/capture';
-import { useToastTop } from '@siga/context/toastProvider';
 import { useLocation } from '@siga/hooks/useLocation';
 import { CustomText } from '@siga/components/CustomText';
 import TipCard from './components/TipsCard';
 import { useTheme } from '@siga/context/themeProvider';
 import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 import { useIsMounted } from '@siga/hooks/useIsMounted';
+import CustomModal from '@siga/components/CustomModal';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -24,22 +24,13 @@ export default function FacialRecognitionScreen() {
   const [isLoadingPermission, setIsLoadingPermission] = useState<boolean>(false);
   const isMounted = useIsMounted();
 
-  const showToast = useToastTop();
-  const message = useCaptureStore((state) => state.error);
-  const clearResult = useCaptureStore((state) => state.clearResult);
+  const { message, status, clearResult } = useCaptureStore((state) => state);
   const { checkAndRequestPermission } = useLocation();
   const { validateGeolocation } = useValidateGeolocation();
 
   useEffect(() => {
     checkAndRequestPermission();
   }, [checkAndRequestPermission]);
-
-  useEffect(() => {
-    if (message) {
-      showToast(message, 'warning');
-      clearResult();
-    }
-  }, [message, showToast, clearResult]);
 
   const handleValidateFace = async () => {
     setIsLoadingPermission(true);
@@ -63,12 +54,12 @@ export default function FacialRecognitionScreen() {
             🌟 Este módulo te permite registrar tu entrada y salida mediante reconocimiento facial.
           </CustomText>
         </View>
-        <CustomText style={styles.title}>Reconocimiento Facial</CustomText>
+        <CustomText style={styles.title}>Validación Facial</CustomText>
         <CustomText style={styles.subtitle}>Coloca tu rostro frente a la cámara</CustomText>
 
         <View style={styles.tipsContainer}>
           <TipCard emoji="💡" text="Asegúrate de estar en un lugar bien iluminado" style={styles.tipCard} />
-          <TipCard emoji=" 👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
+          <TipCard emoji="👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
         </View>
       </View>
       <Button
@@ -77,6 +68,13 @@ export default function FacialRecognitionScreen() {
         title="🔍 Validar Rostro"
         onPress={() => handleValidateFace()}
       />
+      <CustomModal
+        title="¡Hola! 👋"
+        visible={!!message} onClose={() => clearResult()}>
+        <CustomText style={styles.infoText}>
+          {`${status ? '🌟' : '🔥'} ${message}`}
+        </CustomText>
+      </CustomModal>
     </Container>
   );
 }
@@ -114,7 +112,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   button: {
-    borderRadius: 0,
+    borderRadius: 10,
+    margin: 8,
   },
   infoContainer: {
     backgroundColor: '#e3f2fd',
