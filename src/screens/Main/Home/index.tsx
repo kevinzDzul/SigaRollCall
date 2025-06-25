@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import Container from '@siga/components/Container';
@@ -8,22 +8,23 @@ import { useNavigation } from '@react-navigation/native';
 import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
 import { useCaptureStore } from '@siga/store/capture';
-import { useToastTop } from '@siga/context/toastProvider';
 import { useLocation } from '@siga/hooks/useLocation';
 import { CustomText } from '@siga/components/CustomText';
 import TipCard from './components/TipsCard';
 import { useTheme } from '@siga/context/themeProvider';
 import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
+import { useIsMounted } from '@siga/hooks/useIsMounted';
+import CustomModal from '@siga/components/CustomModal';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
 export default function FacialRecognitionScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<NavigationProp>();
+  const [isLoadingPermission, setIsLoadingPermission] = useState<boolean>(false);
+  const isMounted = useIsMounted();
 
-  const showToast = useToastTop();
-  const message = useCaptureStore((state) => state.error);
-  const clearResult = useCaptureStore((state) => state.clearResult);
+  const { message, status, clearResult } = useCaptureStore((state) => state);
   const { checkAndRequestPermission } = useLocation();
   const { validateGeolocation } = useValidateGeolocation();
 
@@ -31,18 +32,13 @@ export default function FacialRecognitionScreen() {
     checkAndRequestPermission();
   }, [checkAndRequestPermission]);
 
-  useEffect(() => {
-    if (message) {
-      showToast(message, 'warning');
-      clearResult();
-    }
-  }, [message, showToast, clearResult]);
-
   const handleValidateFace = async () => {
+    setIsLoadingPermission(true);
     const ok = await validateGeolocation();
     if (ok) {
-      navigation.navigate('CaptureScreen', { mode: 'validate' })
+      navigation.navigate('CaptureScreen', { mode: 'validate' });
     }
+    isMounted && setIsLoadingPermission(false);
   };
 
   return (
@@ -53,19 +49,32 @@ export default function FacialRecognitionScreen() {
           <CustomText style={styles.emoji}>📸</CustomText>
         </View>
 
-        <CustomText style={styles.title}>Reconocimiento Facial</CustomText>
+        <View style={styles.infoContainer}>
+          <CustomText style={styles.infoText}>
+            🌟 Este módulo te permite registrar tu entrada y salida mediante reconocimiento facial.
+          </CustomText>
+        </View>
+        <CustomText style={styles.title}>Validación Facial</CustomText>
         <CustomText style={styles.subtitle}>Coloca tu rostro frente a la cámara</CustomText>
 
         <View style={styles.tipsContainer}>
           <TipCard emoji="💡" text="Asegúrate de estar en un lugar bien iluminado" style={styles.tipCard} />
-          <TipCard emoji=" 👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
+          <TipCard emoji="👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
         </View>
       </View>
       <Button
+        isLoading={isLoadingPermission}
         style={styles.button}
         title="🔍 Validar Rostro"
         onPress={() => handleValidateFace()}
       />
+      <CustomModal
+        title="¡Hola! 👋"
+        visible={!!message} onClose={() => clearResult()}>
+        <CustomText style={styles.infoText}>
+          {`${status ? '🌟' : '🔥'} ${message}`}
+        </CustomText>
+      </CustomModal>
     </Container>
   );
 }
@@ -103,6 +112,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   button: {
-    borderRadius: 0,
+    borderRadius: 10,
+    margin: 8,
+  },
+  infoContainer: {
+    backgroundColor: '#e3f2fd',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    width: '100%',
+  },
+  infoText: {
+    color: '#0d47a1',
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

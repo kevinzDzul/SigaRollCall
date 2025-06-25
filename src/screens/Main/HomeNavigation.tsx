@@ -20,8 +20,8 @@ export default function HomeLayout() {
 
   // Definimos las pantallas
   const screens = [
-    { name: '🏘️ Inicio', component: HomeScreen, permission: [UserRole.USER, UserRole.ADMIN, UserRole.MANAGER] },
-    { name: '👱🏻 Registro de Rostro', component: CheckListScreen, permission: [UserRole.ADMIN, UserRole.MANAGER] },
+    { name: '🏠 Inicio', component: HomeScreen, permission: [UserRole.USER, UserRole.ADMIN, UserRole.MANAGER] },
+    { name: '👱🏻‍♂️ Registro de Rostro', component: CheckListScreen, permission: [UserRole.ADMIN, UserRole.MANAGER] },
     { name: '⚙️ Ajustes', component: SettingsScreen, permission: [UserRole.USER, UserRole.ADMIN, UserRole.MANAGER] },
   ];
 

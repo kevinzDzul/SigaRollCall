@@ -1,22 +1,9 @@
 import api from './axiosInstance';
 
-export type TypeArray =
-  | Float32Array
-  | Float64Array
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | Uint8Array
-  | Uint16Array
-  | Uint32Array
-  | BigInt64Array
-  | BigUint64Array;
-
 export interface RegisterFaceRequest {
   empleadoIdLogged?: number;
   idEmpleado: string;
   photo: string | undefined;
-  vectorFace: string | undefined;
 }
 
 export interface RegisterFaceResponse {

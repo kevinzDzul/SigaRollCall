@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@siga/context/authProvider';
 import Button from '@siga/components/Button';
 import { InputText } from '@siga/components/InputText';
@@ -29,6 +29,9 @@ export default function LoginScreen() {
     }
   };
 
+  // Referencia para el input de contraseña
+  const passwordInputRef = useRef<any>(null);
+
   return (
     <Container style={styles.container}>
       <CustomText style={styles.title}>Login</CustomText>
@@ -38,14 +41,18 @@ export default function LoginScreen() {
         placeholder="Usuario"
         onChangeText={setUser}
         onFocus={() => setUseError(undefined)}
+        returnKeyType="next"
+        onSubmitEditing={() => passwordInputRef.current && passwordInputRef.current.focus()}
       />
       <InputText
+        ref={passwordInputRef}
         placeholder="Contraseña"
         error={passError}
         onFocus={() => setPassError(undefined)}
         secureTextEntry
         style={styles.input}
-        onChangeText={setPass} />
+        onChangeText={setPass}
+      />
       <Button title="Entrar" type="primary" isLoading={isLoading} onPress={handleLogin} />
     </Container>
   );

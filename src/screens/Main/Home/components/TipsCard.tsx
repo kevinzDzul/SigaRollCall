@@ -30,8 +30,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 12,
         borderRadius: 12,
-        elevation: 2, // sombra en Android
-        shadowColor: '#000', // sombra en iOS
+        elevation: 1, // sombra en Android
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,

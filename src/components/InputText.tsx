@@ -20,15 +20,19 @@ type Props = TextInputProps & {
     onClear?: () => void;
 };
 
-export const InputText = ({
-    label,
-    error,
-    loading,
-    onClear,
-    value,
-    secureTextEntry,
-    ...props
-}: Props) => {
+export const InputText = React.forwardRef<TextInput, Props>(
+  (
+    {
+      label,
+      error,
+      loading,
+      onClear,
+      value,
+      secureTextEntry,
+      ...props
+    },
+    ref
+  ) => {
     const { colors } = useTheme();
     const [focused, setFocused] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -72,6 +76,7 @@ export const InputText = ({
             >
                 <TextInput
                     {...props}
+                    ref={ref}
                     value={value}
                     secureTextEntry={secureTextEntry && !passwordVisible}
                     placeholderTextColor={colors.onSurfaceVariant}
@@ -117,7 +122,9 @@ export const InputText = ({
             )}
         </View>
     );
-};
+  }
+);
+
 
 const styles = StyleSheet.create({
     label: {

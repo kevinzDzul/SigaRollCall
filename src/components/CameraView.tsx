@@ -14,24 +14,34 @@ import {
   useFaceDetector,
   FaceDetectionOptions,
 } from 'react-native-vision-camera-face-detector';
-import { useSharedValue, Worklets } from 'react-native-worklets-core';
+import { Worklets } from 'react-native-worklets-core';
 import { reportError } from '@siga/util/reportError';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
-import useEfficientDetModel from '@siga/hooks/useEfficientDetModel';
 import { useIsFocused } from '@react-navigation/native';
+import {
+  Canvas,
+  Circle,
+  Path,
+  Skia,
+  PathOp,
+} from '@shopify/react-native-skia';
 
 interface Props {
   position?: CameraPosition;
-  onCapture: (originalPath: string, resizedFrameData: Float32Array) => void;
+  onCapture: (originalPath: string) => void;
   showCircleFace?: boolean;
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const MIN_BOUNDS = { height: 800, width: 800 };
+const MAX_BOUNDS = { height: 1100, width: 1000 };
 
-export default function CameraView({ position = 'front', onCapture, showCircleFace }: Props) {
+export default function CameraView({
+  position = 'front',
+  onCapture,
+  showCircleFace,
+}: Props) {
   const isFocused = useIsFocused();
   const camera = useRef<Camera>(null);
-  const { resize } = useResizePlugin();
   const device = useCameraDevice(position);
   const format = useCameraFormat(device, []);
   const theme = useTheme();
@@ -39,12 +49,10 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   const [hasPermission, setHasPermission] = useState(false);
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
+  const [isCentered, setIsCentered] = useState(false);
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCounting = useRef(false);
-
-  const { model } = useEfficientDetModel();
-  const vectorData = useSharedValue<any>([]);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     windowWidth: SCREEN_W,
@@ -60,10 +68,10 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   }, []);
 
   const takePhoto = async () => {
-    if (camera.current && vectorData.value && !done) {
+    if (camera.current && !done) {
       try {
         const photo = await camera.current.takeSnapshot();
-        onCapture(photo.path, vectorData.value);
+        onCapture(photo.path);
         setMessage('Foto tomada exitosamente');
         setDone(true);
         isCounting.current = false;
@@ -74,7 +82,9 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
   };
 
   const startCountdown = () => {
-    if (isCounting.current) return;
+    if (isCounting.current) {
+      return;
+    }
 
     isCounting.current = true;
     let seconds = 5;
@@ -92,45 +102,71 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     }, 1000);
   };
 
+  const isFacingForward = (
+    face: Face,
+    yawThreshold = 10,
+    pitchThreshold = 15,
+  ) => {
+    return (
+      Math.abs(face.yawAngle) < yawThreshold &&
+      Math.abs(face.pitchAngle) < pitchThreshold
+    );
+  };
+
+  const isFaceCentered = (bounds: Face['bounds']) => {
+    return (
+      bounds.width >= MIN_BOUNDS.width &&
+      bounds.width <= MAX_BOUNDS.width &&
+      bounds.height >= MIN_BOUNDS.height &&
+      bounds.height <= MAX_BOUNDS.height
+    );
+  };
+
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
-    if (done) return;
+    if (done) {
+      return;
+    }
 
-    const detected = faces.length > 0;
+    if (faces.length === 0) {
+      setIsCentered(false);
+      if (!isCounting.current) {
+        setMessage('Buscando rostro...');
+      }
+      return;
+    }
 
-    if (detected && !isCounting.current) {
+    const face = faces[0];
+    const facingNow = isFacingForward(face);
+    const centeredNow = isFaceCentered(face.bounds);
+    setIsCentered(centeredNow);
+
+    if (!facingNow && !isCounting.current) {
+      setMessage('Mira hacia la camara');
+      return;
+    }
+
+    if (!centeredNow && !isCounting.current) {
+      setMessage('Centra tu rostro en el círculo');
+      return;
+    }
+
+    if (facingNow && centeredNow && !isCounting.current) {
       startCountdown();
-    } else if (!detected && !isCounting.current) {
-      setMessage('Buscando rostro...');
+      return;
     }
   });
 
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
+  const frameProcessor = useFrameProcessor(
+    (frame) => {
+      'worklet';
 
-    runAtTargetFps(1, async () => {
-
-      const faces = detectFaces(frame);
-      handleFrame(faces);
-
-      if (!model || faces.length === 0) return;
-
-      const raw = resize(frame, {
-        scale: { width: 160, height: 160 },
-        crop: {
-          x: faces[0].bounds.y,
-          y: faces[0].bounds.x,
-          width: faces[0].bounds.width,
-          height: faces[0].bounds.height,
-        },
-        rotation: '270deg',
-        pixelFormat: 'rgb',
-        dataType: 'float32',
+      runAtTargetFps(1, async () => {
+        const faces = detectFaces(frame);
+        handleFrame(faces);
       });
-
-      const detector = model.runSync([raw]);
-      vectorData.value = detector[0];
-    });
-  }, [handleFrame]);
+    },
+    [handleFrame],
+  );
 
   useEffect(() => {
     return () => {
@@ -140,7 +176,19 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
     };
   }, []);
 
-  if (!isFocused || !device || !hasPermission) return null;
+  if (!isFocused || !device || !hasPermission) {
+    return null;
+  }
+  const circleColor = isCentered ? 'limegreen' : 'white';
+  const CIRCLE_R = (SCREEN_W / 2) - 10;
+  const CIRCLE_CX = SCREEN_W / 2;
+  const CIRCLE_CY = SCREEN_H / 2;
+
+  const overlayPath = Skia.Path.Make();
+  overlayPath.addRect(Skia.XYWHRect(0, 0, SCREEN_W, SCREEN_H));
+  const circlePath = Skia.Path.Make();
+  circlePath.addCircle(CIRCLE_CX, CIRCLE_CY, CIRCLE_R);
+  overlayPath.op(circlePath, PathOp.Difference);
 
   return (
     <View style={styles.container}>
@@ -157,7 +205,19 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
         format={format}
       />
 
-      {showCircleFace && !done && <View style={styles.circleOverlay} />}
+      {showCircleFace && !done && (
+        <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Path path={overlayPath} color="rgba(0, 0, 0, 0.5)" />
+          <Circle
+            cx={CIRCLE_CX}
+            cy={CIRCLE_CY}
+            r={CIRCLE_R}
+            style="stroke"
+            strokeWidth={3}
+            color={circleColor}
+          />
+        </Canvas>
+      )}
 
       <View style={styles.messageContainer}>
         <Text style={[styles.messageText, { color: theme.colors.onPrimary }]}>
@@ -171,19 +231,6 @@ export default function CameraView({ position = 'front', onCapture, showCircleFa
 const styles = StyleSheet.create({
   container: { flex: 1 },
   camera: { flex: 1 },
-  circleOverlay: {
-    position: 'absolute',
-    borderStyle: 'dashed',
-    top: SCREEN_H / 2 - 240,
-    left: SCREEN_W / 2 - 140,
-    width: 280,
-    height: 400,
-    borderRadius: 200,
-    borderWidth: 3,
-    borderColor: 'white',
-    backgroundColor: 'transparent',
-    zIndex: 10,
-  },
   messageContainer: {
     position: 'absolute',
     top: 50,
