@@ -15,6 +15,7 @@ import { useTheme } from '@siga/context/themeProvider';
 import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 import { useIsMounted } from '@siga/hooks/useIsMounted';
 import CustomModal from '@siga/components/CustomModal';
+import ContentBody from '@siga/components/ContentBody';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -44,7 +45,7 @@ export default function FacialRecognitionScreen() {
   return (
     <Container >
       <Header mode="drawer" />
-      <View style={styles.body}>
+      <ContentBody style={styles.body}>
         <View style={[styles.iconContainer, { backgroundColor: colors.surfaceVariant }]}>
           <CustomText style={styles.emoji}>📸</CustomText>
         </View>
@@ -61,7 +62,8 @@ export default function FacialRecognitionScreen() {
           <TipCard emoji="💡" text="Asegúrate de estar en un lugar bien iluminado" style={styles.tipCard} />
           <TipCard emoji="👓" text="Mantén tu rostro centrado y sin objetos que lo cubran" />
         </View>
-      </View>
+
+      </ContentBody>
       <Button
         isLoading={isLoadingPermission}
         style={styles.button}
@@ -81,10 +83,8 @@ export default function FacialRecognitionScreen() {
 
 const styles = StyleSheet.create({
   body: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
   },
   iconContainer: {
     padding: 16,

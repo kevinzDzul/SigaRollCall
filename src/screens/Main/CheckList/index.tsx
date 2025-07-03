@@ -16,11 +16,11 @@ import { useCaptureStore } from '@siga/store/capture';
 import { reportError } from '@siga/util/reportError';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
     FlatList,
     StyleSheet,
     Keyboard,
 } from 'react-native';
+import ContentBody from '@siga/components/ContentBody';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -35,8 +35,6 @@ export default function CheckListScreen() {
 
     const [filteredData, setFilteredData] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(false);
-
-
 
     const keyboardDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -90,7 +88,6 @@ export default function CheckListScreen() {
         }, [debouncedQuery, showToast])
     );
 
-
     const handleItem = async (item: Employee) => {
         if (isLoadingValidation) { return; }
         const isActiveLocation = await validateGeolocation();
@@ -115,9 +112,9 @@ export default function CheckListScreen() {
     );
 
     return (
-        <Container style={styles.container}>
+        <Container>
             <Header mode="drawer" />
-            <View style={[styles.body]}>
+            <ContentBody scrollable={false}>
                 <InputText
                     placeholder="Buscar..."
                     value={query}
@@ -128,6 +125,7 @@ export default function CheckListScreen() {
                     style={[styles.searchInput, { borderColor: colors.surfaceVariant }]}
                 />
                 <FlatList
+                    style={styles.list}
                     data={filteredData}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => renderItem(item)}
@@ -137,7 +135,7 @@ export default function CheckListScreen() {
                         </CustomText>
                     }
                 />
-            </View>
+            </ContentBody>
             <CustomModal
                 title="👋 ¡Hola!"
                 visible={!!message} onClose={() => clearResult()}>
@@ -150,14 +148,15 @@ export default function CheckListScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    body: { flex: 1, padding: 16 },
     searchInput: {
         borderWidth: 1,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
         marginBottom: 16,
+    },
+    list: {
+        flex: 1,
     },
     infoText: {
         color: '#0d47a1',
