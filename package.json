@@ -6,6 +6,7 @@
     "reset-metro-cache": "watchman watch-del-all && rm -rf /tmp/metro-*",
     "clean-all": "watchman watch-del-all && rm -rf /tmp/metro-* android/app/build node_modules && yarn install",
     "build-debug-apk": "cd android && ./gradlew assembleDebug",
+    "build-release-apk": "cd android && ./gradlew assembleRelease",
     "android": "watchman watch-del-all && rm -rf /tmp/metro-* && react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
