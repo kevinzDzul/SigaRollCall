@@ -4,13 +4,14 @@ import { CustomText } from './CustomText';
 import { useTheme } from '@siga/context/themeProvider';
 
 type UserCardProps = {
+    disabled?: boolean;
     name: string;
     username?: string;
     isFaceCompleted?: boolean;
     onOptionsPress: () => void;
 };
 
-const UserCard: React.FC<UserCardProps> = ({ name, username, isFaceCompleted = false, onOptionsPress }) => {
+const UserCard: React.FC<UserCardProps> = ({ disabled, name, username, isFaceCompleted = false, onOptionsPress }) => {
     const { colors } = useTheme();
     const initial = (name?.trim()?.[0] || '?').toUpperCase();
     return (
@@ -25,7 +26,7 @@ const UserCard: React.FC<UserCardProps> = ({ name, username, isFaceCompleted = f
             </View>
             <TouchableOpacity
                 onPress={onOptionsPress}
-                disabled={isFaceCompleted}
+                disabled={disabled || isFaceCompleted}
                 style={styles.iconWrapper}
             >
                 {isFaceCompleted ?
@@ -33,15 +34,27 @@ const UserCard: React.FC<UserCardProps> = ({ name, username, isFaceCompleted = f
                         <Text style={styles.textTag}>{'Registrado'}</Text>
                     </View>
                     :
-                    <View style={styles.button}>
+                    <View style={[
+                        styles.button,
+                        disabled && styles.disabledButton,
+                    ]}>
                         <Text style={styles.textButton}>{'Registrar'}</Text>
-                    </View>}
+                    </View>
+                }
             </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    disabledButton: {
+        backgroundColor: '#E0E0E0', // Un gris claro para el fondo
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+        elevation: 2,
+        opacity: 0.6,
+    },
     card: {
         flexDirection: 'row',
         alignItems: 'center',

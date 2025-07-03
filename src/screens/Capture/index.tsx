@@ -7,7 +7,7 @@ import { useCaptureStore } from '@siga/store/capture';
 import { useTheme } from '@siga/context/themeProvider';
 import { useToastTop } from '@siga/context/toastProvider';
 import { CoordsProps, useLocation } from '@siga/hooks/useLocation';
-import { registerFaceService, TypeArray } from '@siga/api/registerFaceService';
+import { registerFaceService } from '@siga/api/registerFaceService';
 import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
@@ -15,6 +15,7 @@ import { useAuth } from '@siga/context/authProvider';
 import { CameraPosition } from 'react-native-vision-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY } from '@siga/components/SwitchCamera';
+import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
 
 export type RootStackParamList = {
     CaptureScreen: {
@@ -34,8 +35,12 @@ export default function CaptureScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [cameraType, setCameraType] = useState<CameraPosition>('front');
 
+    const { setResult, clearResult } = useCaptureStore((state) => state);
+    const { getLocation } = useLocation();
+
+    useUnmountBrightness(1);
+
     useEffect(() => {
-        // Cargar el valor guardado al iniciar
         const loadSwitchValue = async () => {
             try {
                 const savedValue = await AsyncStorage.getItem(STORAGE_KEY);
@@ -49,62 +54,55 @@ export default function CaptureScreen() {
         loadSwitchValue();
     }, []);
 
-    const setResult = useCaptureStore((state) => state.setResult);
-    const clearResult = useCaptureStore((state) => state.clearResult);
-    const { getLocation } = useLocation();
-
-    const validateUserFace = async (vector: TypeArray, coords: CoordsProps) => {
-        const vectorRequest: number[] = Object.values(vector);
+    const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
+        const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await validateFaceService({
             empleadoIdLogged: user?.idEmpleado,
             lat: coords?.latitude,
             lng: coords?.longitude,
-            faceToken: JSON.stringify(vectorRequest),
+            photo: base64,
         });
         setResult(success, message);
     };
 
-    const registerUserFace = async (originalPath: string, vector: TypeArray, id: string) => {
-        const vectorRequest: number[] = Object.values(vector);
+    const registerUserFace = async (originalPath: string, id: string) => {
         const base64 = await fetchImageToB64(`file://${originalPath}`);
         const { message, success } = await registerFaceService({
             empleadoIdLogged: user?.idEmpleado,
             photo: base64,
             idEmpleado: id,
-            vectorFace: JSON.stringify(vectorRequest),
         });
         setResult(success, message);
     };
 
-    const handleCapture = async (originalPath: string, vector: TypeArray) => {
+    const handleCapture = async (originalPath: string) => {
+        setIsLoading(true);
         const mode = route?.params?.mode;
         const id = route?.params?.id;
-        setIsLoading(true);
 
         const location = await getLocation();
 
         if (!location) {
-            showToast('Se requieren permisos de localización');
+            showToast('🔥 Se requieren permisos de localización');
             return;
         }
 
         if (!mode) {
-            showToast('Modo no especificado');
             return;
         }
 
         if (mode === 'register' && !id) {
-            showToast('Se requiere identificador');
+            showToast('🔥 Se requiere identificador del usuario, Intenta nuevamente');
             return;
         }
 
         try {
             if (mode === 'register' && id) {
-                await registerUserFace(originalPath, vector, id);
+                await registerUserFace(originalPath, id);
             } else if (mode === 'validate') {
-                await validateUserFace(vector, location);
+                await validateUserFace(originalPath, location);
             } else {
-                showToast(`Modo desconocido: ${mode} o undefined`);
+                showToast(`🔥 Modo desconocido: ${mode} o undefined`);
             }
         } catch (error: any) {
             reportError(error);
@@ -115,7 +113,6 @@ export default function CaptureScreen() {
             goBack();/// TODO -  hay un warning, resolverlo, deberia hacer un navigate.
         }
     };
-
 
     return (
         <View style={styles.container}>

@@ -1,6 +1,7 @@
 import { useTheme } from '@siga/context/themeProvider';
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ContainerType = {
     style?: StyleProp<ViewStyle>,
@@ -9,7 +10,7 @@ type ContainerType = {
 
 const Container = ({ children, style }: ContainerType) => {
     const { colors } = useTheme();
-    return (<View style={[styles.container, { backgroundColor: colors.background }, style]}>{children}</View>);
+    return (<SafeAreaView style={[styles.container, { backgroundColor: colors.background }, style]}>{children}</SafeAreaView>);
 };
 
 const styles = StyleSheet.create({
