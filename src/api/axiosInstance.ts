@@ -7,16 +7,24 @@ import camelcaseKeys from 'camelcase-keys';
 import snakecaseKeys from 'snakecase-keys';
 import Config from 'react-native-config';
 
-const ENABLE_LOGS = true;
+const ENABLE_LOGS = Config.ENABLE_LOGS === 'true';
+const isSentryProduction = Config.SENTRY_ENV === 'production';
 
 const logRequest = <D>(config: InternalAxiosRequestConfig<D>) => {
   if (ENABLE_LOGS) {
-    console.log('📤 Request:', {
-      method: config.method,
-      url: config.url,
-      headers: config.headers,
-      data: config.data,
-    });
+    const { method, url, headers, data } = config;
+    const logData: any = {
+      method: method,
+      url: url,
+      headers: headers,
+      data: data,
+    };
+
+    if (isSentryProduction) {
+      logData.method = String(method);
+      logData.headers = JSON.stringify(headers);
+    }
+    console.log('📤 Request:', logData);
   }
   return config;
 };
@@ -35,11 +43,20 @@ const logResponse = <T>(response: AxiosResponse<T>) => {
 const logError = (error: any) => {
   if (ENABLE_LOGS) {
     if (error.response) {
-      console.log('❌ Error Response:', {
-        url: error.config?.url,
-        status: error.response.status,
-        data: error.response.data,
-      });
+      const { config, status, data } = error.response;
+      const logData: any = {
+        url: config?.url,
+        status: status,
+        data: data,
+        method: config?.method,
+        headers: config?.headers,
+      };
+
+      if (isSentryProduction) {
+        logData.method = String(config?.method);
+        logData.headers = JSON.stringify(config?.headers);
+      }
+      console.log('❌ Error Response:', logData);
     } else {
       console.log('❌ Request Error:', error.message);
     }

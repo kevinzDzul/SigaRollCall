@@ -5,6 +5,16 @@ import { ToastProvider } from '@siga/context/toastProvider';
 import RootNavigator from '@siga/navigation/RootNavigator';
 import * as Sentry from '@sentry/react-native';
 import Config from 'react-native-config';
+import { getVersion, getBuildNumber, getBundleId } from 'react-native-device-info';
+import { NetworkProvider } from '@siga/context/networkProvider';
+import { ConnectionStatusModal } from '@siga/components/ConnectionStatusModal';
+import { NavigationContainerRef } from '@react-navigation/native';
+
+export const navigationRef = React.createRef<NavigationContainerRef<any>>();
+
+export const routingInstrumentation = Sentry.reactNavigationIntegration({
+  routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete.
+});
 
 const sentryEnv = Config.SENTRY_ENV;
 const config = {
@@ -16,7 +26,9 @@ const config = {
 if (sentryEnv === 'production') {
   Sentry.init({
     dsn: Config.SENTRY_DNS,
+    release: `${getBundleId()}@${getVersion()}+${getBuildNumber()}`,
     ...config,
+    integrations: [routingInstrumentation],
     // uncomment the line below to enable Spotlight (https://spotlightjs.com)
     // spotlight: __DEV__,
   });
@@ -25,11 +37,14 @@ if (sentryEnv === 'production') {
 const App = () => {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
-      </ToastProvider>
+      <NetworkProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </ToastProvider>
+        <ConnectionStatusModal />
+      </NetworkProvider>
     </ThemeProvider>
   );
 };

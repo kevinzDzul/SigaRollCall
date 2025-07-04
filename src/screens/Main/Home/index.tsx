@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import Container from '@siga/components/Container';
@@ -8,7 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import Button from '@siga/components/Button';
 import Header from '@siga/components/Header';
 import { useCaptureStore } from '@siga/store/capture';
-import { useLocation } from '@siga/hooks/useLocation';
 import { CustomText } from '@siga/components/CustomText';
 import TipCard from './components/TipsCard';
 import { useTheme } from '@siga/context/themeProvider';
@@ -16,6 +15,7 @@ import { useValidateGeolocation } from '@siga/hooks/useValidateGeolocation';
 import { useIsMounted } from '@siga/hooks/useIsMounted';
 import CustomModal from '@siga/components/CustomModal';
 import ContentBody from '@siga/components/ContentBody';
+import { useAppPermissions } from '@siga/hooks/useAppPermissions';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'CaptureScreen'>
 
@@ -26,20 +26,23 @@ export default function FacialRecognitionScreen() {
   const isMounted = useIsMounted();
 
   const { message, status, clearResult } = useCaptureStore((state) => state);
-  const { checkAndRequestPermission } = useLocation();
   const { validateGeolocation } = useValidateGeolocation();
-
-  useEffect(() => {
-    checkAndRequestPermission();
-  }, [checkAndRequestPermission]);
+  const { requestRequiredPermissions } = useAppPermissions();
 
   const handleValidateFace = async () => {
     setIsLoadingPermission(true);
-    const ok = await validateGeolocation();
-    if (ok) {
+
+    const havePermissions = await requestRequiredPermissions();
+    if (!havePermissions) {
+      isMounted.current && setIsLoadingPermission(false);
+      return;
+    }
+
+    const isGeolocationValid = await validateGeolocation();
+    if (isGeolocationValid) {
       navigation.navigate('CaptureScreen', { mode: 'validate' });
     }
-    isMounted && setIsLoadingPermission(false);
+    isMounted.current && setIsLoadingPermission(false);
   };
 
   return (

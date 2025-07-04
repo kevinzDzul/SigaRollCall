@@ -6,6 +6,8 @@ import HomeLayout from '@siga/screens/Main/HomeNavigation';
 import LoginScreen from '@siga/screens/Login';
 import { useAuth } from '@siga/context/authProvider';
 import { useTheme } from '@siga/context/themeProvider';
+import { navigationRef, routingInstrumentation } from '../../App';
+import React from 'react';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +26,12 @@ const RootNavigator = () => {
     return (
         <>
             <StatusBar animated backgroundColor={colors.primary} />
-            <NavigationContainer>
+            <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                    routingInstrumentation.registerNavigationContainer(navigationRef);
+                }}
+            >
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
                     {isLoggedIn ? (
                         <>

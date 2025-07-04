@@ -77,26 +77,26 @@ export default function CaptureScreen() {
 
     const handleCapture = async (originalPath: string) => {
         setIsLoading(true);
-        const mode = route?.params?.mode;
-        const id = route?.params?.id;
-
-        const location = await getLocation();
-
-        if (!location) {
-            showToast('🔥 Se requieren permisos de localización');
-            return;
-        }
-
-        if (!mode) {
-            return;
-        }
-
-        if (mode === 'register' && !id) {
-            showToast('🔥 Se requiere identificador del usuario, Intenta nuevamente');
-            return;
-        }
-
         try {
+            const mode = route?.params?.mode;
+            const id = route?.params?.id;
+
+            const location = await getLocation();
+
+            if (!location) {
+                showToast('🔥 Se requieren permisos de localización');
+                return;
+            }
+
+            if (!mode) {
+                return;
+            }
+
+            if (mode === 'register' && !id) {
+                showToast('🔥 Se requiere identificador del usuario, Intenta nuevamente');
+                return;
+            }
+
             if (mode === 'register' && id) {
                 await registerUserFace(originalPath, id);
             } else if (mode === 'validate') {
@@ -110,7 +110,7 @@ export default function CaptureScreen() {
             clearResult();
         } finally {
             setIsLoading(false);
-            goBack();/// TODO -  hay un warning, resolverlo, deberia hacer un navigate.
+            goBack();
         }
     };
 

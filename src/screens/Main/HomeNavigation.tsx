@@ -4,9 +4,9 @@ import HomeScreen from './Home';
 import CheckListScreen from './CheckList';
 import SettingsScreen from './Setting';
 import { useTheme } from '@siga/context/themeProvider';
-import { usePermissions } from '@siga/hooks/usePermissions';
 import { UserRole } from '@siga/constants/Roles';
 import DrawerContent from '@siga/components/DrawerContent';
+import { usePermissions } from '@siga/hooks/usePermissions';
 
 const Drawer = createDrawerNavigator();
 

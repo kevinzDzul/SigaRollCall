@@ -4,6 +4,8 @@ import { UserRole } from '@siga/constants/Roles';
 import { loginService } from '@siga/api/authService';
 import { reportError } from '@siga/util/reportError';
 import { useToastTop } from './toastProvider';
+import * as Sentry from '@sentry/react-native';
+import Config from 'react-native-config';
 
 type LoginType = {
   user: string;
@@ -74,13 +76,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await AsyncStorage.setItem('user', JSON.stringify(currentUser));
       await AsyncStorage.setItem('isLoggedIn', `${currentUser?.success}`);
 
-      setMyUser({
+      const userData = {
         idEmpleado: currentUser?.idEmpleado,
         success: currentUser?.success,
         username: currentUser?.username,
         profile: currentUser?.profile as UserRole,
         message: currentUser?.message,
-      });
+      };
+
+      setMyUser(userData);
+
+      if (Config.SENTRY_ENV === 'production') {
+        Sentry.setUser({
+          id: userData.idEmpleado?.toString(),
+          username: userData.username,
+          extra: { profile: userData.profile }
+        });
+      }
 
       setIsLoggedIn(true);
     } catch (error: any) {
@@ -95,6 +107,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     await AsyncStorage.multiRemove(['isLoggedIn', 'user']);
+    if (Config.SENTRY_ENV === 'production') {
+      Sentry.setUser(null);
+    }
     setIsLoggedIn(false);
     setMyUser(undefined);
   };

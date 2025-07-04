@@ -97,7 +97,7 @@ export default function CheckListScreen() {
             item?.message && showToast(item?.message);
             return;
         }
-        navigation.navigate('CaptureScreen', { id: item.id, mode: 'register' });
+        navigation.navigate('CaptureScreen', { id: item?.id, mode: 'register' });
     };
 
     const renderItem = (item: Employee) => (
