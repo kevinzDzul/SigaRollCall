@@ -109,6 +109,16 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    // Asigna un nombre personalizado al APK de release incluyendo la versión
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.all { output ->
+                def appName = "PaseLista"
+                def newName = "${appName}-v${variant.versionName}.apk"
+                output.outputFileName = newName
+            }
+        }
+    }
 }
 
 dependencies {
