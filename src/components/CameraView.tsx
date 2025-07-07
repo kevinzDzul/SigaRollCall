@@ -19,10 +19,10 @@ import { reportError } from '@siga/util/reportError';
 import { useIsFocused } from '@react-navigation/native';
 import {
   Canvas,
-  Circle,
   Path,
   Skia,
   PathOp,
+  Oval,
 } from '@shopify/react-native-skia';
 
 interface Props {
@@ -32,8 +32,13 @@ interface Props {
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const MIN_BOUNDS = { height: 800, width: 800 };
-const MAX_BOUNDS = { height: 1100, width: 1000 };
+
+const isFacingForward = (face: Face, yawThreshold = 15, pitchThreshold = 15) => {
+  return (
+    Math.abs(face.yawAngle) < yawThreshold &&
+    Math.abs(face.pitchAngle) < pitchThreshold
+  );
+};
 
 export default function CameraView({
   position = 'front',
@@ -49,14 +54,15 @@ export default function CameraView({
   const [hasPermission, setHasPermission] = useState(false);
   const [message, setMessage] = useState('Buscando rostro...');
   const [done, setDone] = useState(false);
-  const [isCentered, setIsCentered] = useState(false);
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCounting = useRef(false);
 
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    windowWidth: SCREEN_W,
-    windowHeight: SCREEN_H,
+    performanceMode: 'fast',
+    classificationMode: 'all',
+    autoMode: true,
+    cameraFacing: 'front',
   }).current;
   const { detectFaces } = useFaceDetector(faceDetectionOptions);
 
@@ -81,6 +87,14 @@ export default function CameraView({
     }
   };
 
+  const stopCountdown = () => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    isCounting.current = false;
+  };
+
   const startCountdown = () => {
     if (isCounting.current) {
       return;
@@ -97,29 +111,9 @@ export default function CameraView({
       if (seconds === 0) {
         clearInterval(countdownRef.current!);
         countdownRef.current = null;
-        takePhoto(); // ✅ ya no se valida si hay rostro
+        takePhoto();
       }
     }, 1000);
-  };
-
-  const isFacingForward = (
-    face: Face,
-    yawThreshold = 10,
-    pitchThreshold = 15,
-  ) => {
-    return (
-      Math.abs(face.yawAngle) < yawThreshold &&
-      Math.abs(face.pitchAngle) < pitchThreshold
-    );
-  };
-
-  const isFaceCentered = (bounds: Face['bounds']) => {
-    return (
-      bounds.width >= MIN_BOUNDS.width &&
-      bounds.width <= MAX_BOUNDS.width &&
-      bounds.height >= MIN_BOUNDS.height &&
-      bounds.height <= MAX_BOUNDS.height
-    );
   };
 
   const handleFrame = Worklets.createRunOnJS((faces: Face[]) => {
@@ -128,31 +122,22 @@ export default function CameraView({
     }
 
     if (faces.length === 0) {
-      setIsCentered(false);
-      if (!isCounting.current) {
-        setMessage('Buscando rostro...');
-      }
+      stopCountdown();
+      setMessage('Buscando rostro...');
       return;
     }
 
     const face = faces[0];
-    const facingNow = isFacingForward(face);
-    const centeredNow = isFaceCentered(face.bounds);
-    setIsCentered(centeredNow);
 
-    if (!facingNow && !isCounting.current) {
-      setMessage('Mira hacia la camara');
+    if (!isFacingForward(face)) {
+      stopCountdown();
+      setMessage('Mira hacia la cámara');
       return;
     }
 
-    if (!centeredNow && !isCounting.current) {
-      setMessage('Centra tu rostro en el círculo');
-      return;
-    }
-
-    if (facingNow && centeredNow && !isCounting.current) {
+    if (!isCounting.current) {
+      setMessage('¡No te muevas!');
       startCountdown();
-      return;
     }
   });
 
@@ -165,7 +150,7 @@ export default function CameraView({
         handleFrame(faces);
       });
     },
-    [handleFrame],
+    [handleFrame, detectFaces],
   );
 
   useEffect(() => {
@@ -179,16 +164,17 @@ export default function CameraView({
   if (!isFocused || !device || !hasPermission) {
     return null;
   }
-  const circleColor = isCentered ? 'limegreen' : 'white';
-  const CIRCLE_R = (SCREEN_W / 2) - 10;
-  const CIRCLE_CX = SCREEN_W / 2;
-  const CIRCLE_CY = SCREEN_H / 2;
+
+  const OVAL_WIDTH = SCREEN_W * 0.8;
+  const OVAL_HEIGHT = OVAL_WIDTH * 1.4;
+  const OVAL_X = (SCREEN_W - OVAL_WIDTH) / 2;
+  const OVAL_Y = (SCREEN_H - OVAL_HEIGHT) / 2.5;
 
   const overlayPath = Skia.Path.Make();
   overlayPath.addRect(Skia.XYWHRect(0, 0, SCREEN_W, SCREEN_H));
-  const circlePath = Skia.Path.Make();
-  circlePath.addCircle(CIRCLE_CX, CIRCLE_CY, CIRCLE_R);
-  overlayPath.op(circlePath, PathOp.Difference);
+  const ovalPath = Skia.Path.Make();
+  ovalPath.addOval(Skia.XYWHRect(OVAL_X, OVAL_Y, OVAL_WIDTH, OVAL_HEIGHT));
+  overlayPath.op(ovalPath, PathOp.Difference);
 
   return (
     <View style={styles.container}>
@@ -208,13 +194,14 @@ export default function CameraView({
       {showCircleFace && !done && (
         <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
           <Path path={overlayPath} color="rgba(0, 0, 0, 0.5)" />
-          <Circle
-            cx={CIRCLE_CX}
-            cy={CIRCLE_CY}
-            r={CIRCLE_R}
+          <Oval
+            x={OVAL_X}
+            y={OVAL_Y}
+            width={OVAL_WIDTH}
+            height={OVAL_HEIGHT}
             style="stroke"
             strokeWidth={3}
-            color={circleColor}
+            color="white"
           />
         </Canvas>
       )}
