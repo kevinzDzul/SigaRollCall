@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import CameraView from '@siga/components/CameraView';
 import Header from '@siga/components/Header';
@@ -12,9 +12,6 @@ import { validateFaceService } from '@siga/api/validateFaceService';
 import { reportError } from '@siga/util/reportError';
 import { fetchImageToB64 } from '@siga/util/fileToBase64';
 import { useAuth } from '@siga/context/authProvider';
-import { CameraPosition } from 'react-native-vision-camera';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { STORAGE_KEY } from '@siga/components/SwitchCamera';
 import { useUnmountBrightness } from '@reeq/react-native-device-brightness';
 
 export type RootStackParamList = {
@@ -33,26 +30,11 @@ export default function CaptureScreen() {
     const showToast = useToastTop();
     const { goBack } = useNavigation();
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [cameraType, setCameraType] = useState<CameraPosition>('front');
 
     const { setResult, clearResult } = useCaptureStore((state) => state);
     const { getLocation } = useLocation();
 
     useUnmountBrightness(1);
-
-    useEffect(() => {
-        const loadSwitchValue = async () => {
-            try {
-                const savedValue = await AsyncStorage.getItem(STORAGE_KEY);
-                if (savedValue !== null) {
-                    setCameraType(savedValue === 'true' ? 'back' : 'front');
-                }
-            } catch (e) {
-                console.error('Error loading switch value:', e);
-            }
-        };
-        loadSwitchValue();
-    }, []);
 
     const validateUserFace = async (originalPath: string, coords: CoordsProps) => {
         const base64 = await fetchImageToB64(`file://${originalPath}`);
@@ -126,7 +108,7 @@ export default function CaptureScreen() {
                 : null}
             {!isLoading ?
                 <CameraView
-                    position={cameraType}
+                    position={'front'}
                     onCapture={handleCapture}
                     showCircleFace
                 /> : null
