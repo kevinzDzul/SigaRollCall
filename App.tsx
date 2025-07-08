@@ -9,7 +9,7 @@ import { getVersion, getBuildNumber, getBundleId } from 'react-native-device-inf
 import { NetworkProvider } from '@siga/context/networkProvider';
 import { ConnectionStatusModal } from '@siga/components/ConnectionStatusModal';
 import { NavigationContainerRef } from '@react-navigation/native';
-
+import RNUxcam from 'react-native-ux-cam';
 export const navigationRef = React.createRef<NavigationContainerRef<any>>();
 
 export const routingInstrumentation = Sentry.reactNavigationIntegration({
@@ -34,7 +34,21 @@ if (sentryEnv === 'production') {
   });
 }
 
+
 const App = () => {
+  if (sentryEnv === 'production') {
+    RNUxcam.optIntoSchematicRecordings(); // Add this line to enable iOS screen recordings
+    const uxCamKey = Config.UX_CAM;
+    if (uxCamKey) {
+      const configuration = {
+        userAppKey: uxCamKey,
+        enableAutomaticScreenNameTagging: true,
+        enableImprovedScreenCapture: true,
+      };
+      RNUxcam.startWithConfiguration(configuration);
+    }
+  }
+
   return (
     <ThemeProvider>
       <NetworkProvider>
